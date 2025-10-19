@@ -4,15 +4,15 @@ import { handleVideoMessage } from "./videos.js";
 import { handleReplyMessage } from "./replys.js";
 import { handleTextMessage } from "./textmessages.js";
 import { handleStickerMessage } from './handlesticker.js';
+import { handleImageMessage } from './handleimage.js';
 import { sendFallbackMenu } from './ansmenu.js'
 import { downloadAndSaveImage } from './imageload.js'; 
 import { getGoogleSearchResults } from "./googles.js";
 import { chatHistory, printChatHistory, exportChatHistoryJSON, exportChatHistoryCSV } from './chatExport.js';
 
 export async function handleEventTypes(event, replyToken, userId, client, botUserId) {
-  // เพิ่มตรงนี้ 👇
-  console.log("🧩 FULL EVENT DEBUG:", JSON.stringify(event, null, 2));
-  console.log("🧩 event.type:", event?.type);
+  //console.log("🧩 FULL EVENT DEBUG:", JSON.stringify(event, null, 2));
+  //console.log("🧩 event.type:", event?.type);
   if (!event || !event.type) {
     console.error("swEvents: Event object is missing or invalid:", event);
     return;
@@ -45,29 +45,29 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
     case "postback":
       const postbackData = event.postback.data;
       console.log("sw.event.type:postbackData:", postbackData);
-      await handleSelectedMenu(event, client, event.replyToken, userId, postbackData);  // ใช้ await
+      //await handleSelectedMenu(event, client, event.replyToken, userId, postbackData);  // ใช้ await
       break;
       
     case "follow":
       console.log("sw.event.type:Follow > ", message);
-      await client.replyMessage(replyToken, {
+      /*await client.replyMessage(replyToken, {
         type: "text",
-        text: "ยินดีต้อนรับ! ขอบคุณที่เพิ่มฉันเป็นเพื่อน",
-      }).catch(console.error);
+        text: "sw.event.type:follow:ยินดีต้อนรับ! ขอบคุณที่เพิ่มฉันเป็นเพื่อน",
+      }).catch(console.error); */
       break;
 
     case "join":
       console.log("sw.event.type:join > ", message);
       const joinMessage = {
         type: "text",
-        text: "สวัสดีทุกคน! ฉันได้เข้าร่วมกลุ่มนี้แล้ว!"
+        text: "sw.event.type:join:สวัสดีทุกคน! ฉันได้เข้าร่วมกลุ่มนี้แล้ว!"
       };
-      await client.replyMessage(replyToken, joinMessage).catch(console.error);
+      //await client.replyMessage(replyToken, joinMessage).catch(console.error);
       break;
 
     case "leave":
       console.log("sw.event.type: leave > ", message);
-      console.log(`index:Bot left group: ${event.source.groupId}`);
+      console.log(`sw.event:Left group: ${event.source.groupId}`);
       break;
 
     case "message":
@@ -75,10 +75,10 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
       
       if (!message || !message.type) {
         console.error("sw.Message or message.type is missing or invalid:", message);
-        await client.replyMessage(replyToken, {
+        /*await client.replyMessage(replyToken, {
           type: "text",
           text: `swEvents. ${message} ไม่สามารถประมวลผลข้อความของคุณได้.`
-        });
+        }); */
       }
       switch (message.type.toLowerCase()) {
         case "location":  // กรณีโลเคชัน
@@ -94,7 +94,7 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
                     `ดูแผนที่: ${googleMapsLink}`
           };
 
-          await client.replyMessage(replyToken, locationMessage);
+          //await client.replyMessage(replyToken, locationMessage);
           break;
         case "text":
           let mentionedUsers = [];
@@ -134,7 +134,7 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
               console.error("Error handling reply message:", error);
               await client.replyMessage(replyToken, {
                 type: "text",
-                text: "เกิดข้อผิดพลาดในการประมวลผลข้อความตอบกลับ",
+                text: "sw.repliedMessage:เกิดข้อผิดพลาดในการประมวลผลข้อความตอบกลับ",
               });
             }
           } else {
@@ -191,7 +191,7 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
               response: error.response?.data,
             });
           }            
-          //await handleImageMessage(event, replyToken, userId, client);  // ใช้ await
+          await handleImageMessage(event, replyToken, userId, client);  // ใช้ await
           break;
 
         case "audio":
@@ -201,7 +201,7 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
               message = {
                 type: "text",
                 text: resultText.text || "ไม่สามารถถอดข้อความเสียงได้."};  // เอาข้อความที่แปลงจากเสียงมาใช้
-              //console.log('swEvents.ข้อความที่แปลงจากเสียง:', message.text);
+                console.log('swEvents.ข้อความที่แปลงจากเสียง:', message.text);
             } else {
                 console.log('swEvents.ไม่สามารถได้รับข้อความจากบอท หรือ ข้อความไม่ใช่ string', resultText);
                 message = "";  // ถ้า resultText ไม่ใช่ข้อความที่แปลงได้
@@ -258,7 +258,7 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
   chatHistory.push(metadata);
 
   // **แสดง metadata ใน Console เท่านั้น**
-  console.log(`[${new Date(metadata.timestamp).toLocaleString()}] userId: ${metadata.userId}, userName: ${metadata.userName}, type: ${metadata.messageType}, content: ${metadata.textContent || metadata.filePath || "-"}`);
+  console.log(`swEvents.[${new Date(metadata.timestamp).toLocaleString()}] userId: ${metadata.userId}, userName: ${metadata.userName}, type: ${metadata.messageType}, content: ${metadata.textContent || metadata.filePath || "-"}`);
 
   // **บันทึก metadata ทุกชนิด**
   saveEventMetadata(metadata);
@@ -266,19 +266,19 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
 // ฟังก์ชันตัวอย่างสำหรับบันทึก metadata
 function saveEventMetadata(metadata) {
   // เก็บในฐานข้อมูล หรือ JSON file / local storage
-  console.log("Saved metadata:", metadata);
+  console.log("swEvents.Saved metadata:", metadata);
 }
 export const handleUrlMessage = async (event, replyToken, userId, client) => {
   const message = event?.message || null; // ดึงข้อความจาก event
 
   if (!message) {
-    console.error("No message found in the event");
+    console.error("swEvents.No message found in the event");
     return;
   }
 
   // ตรวจสอบว่า message เป็น string หรือไม่
   if (typeof message.text !== "string") {
-    console.log(`ชนิดของ message: ${typeof message}`, message);
+    console.log(`swEvents.ชนิดของ message: ${typeof message}`, message);
     return;
   }
 
@@ -293,16 +293,16 @@ export const handleUrlMessage = async (event, replyToken, userId, client) => {
   let searchResult = [];
 
   if (urlRegex.test(messageContent)) {
-    console.log("เป็นข้อความชนิด url:", messageContent);
+    console.log("swEvents.เป็นข้อความชนิด url:", messageContent);
     searchResult = await getGoogleSearchResults(url) || [];
     if (!Array.isArray(searchResult)) {
-      console.error("searchResult is not a valid array:", searchResult);
+      console.error("swEvents.searchResult is not a valid array:", searchResult);
       searchResult = [];
   }
 
-  console.log("Search results for URL:", searchResult);
+  console.log("swEvents.Search results for URL:", searchResult);
   } else {
-    console.log(`ชนิดของ message: ${typeof messageContent}`, messageContent);
+    console.log(`swEvents.ชนิดของ message: ${typeof messageContent}`, messageContent);
     
   }
 
@@ -314,6 +314,6 @@ export const handleUrlMessage = async (event, replyToken, userId, client) => {
     resultOther: resultOther,
   };
 
-  console.log("Final contentText to sendFallbackMenu:", contentText);
+  console.log("swEvents.Final contentText to sendFallbackMenu:", contentText);
   sendFallbackMenu(replyToken, client, userId, messageContent, contentText);
 };
