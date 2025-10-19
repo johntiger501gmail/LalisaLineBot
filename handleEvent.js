@@ -131,11 +131,11 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
             try {
               await handleReplyMessage(event, replyToken, client, botUserId, mentionedUsers);
             } catch (error) {
-              console.error("sw.EventType:Error handling reply message:", error);
-              await client.replyMessage(replyToken, {
+              console.error("🧩sw.EventType:Error handling reply message:", error);
+              /*await client.replyMessage(replyToken, {
                 type: "text",
                 text: "🧩sw.EventType:repliedMessage:เกิดข้อผิดพลาดในการประมวลผลข้อความตอบกลับ",
-              });
+              }); */
             }
           } else {
             console.log("🧩sw.EventType.handleTextMessage message: " + message.text);
