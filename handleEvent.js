@@ -30,7 +30,7 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
     eventType: event.type || null,
     messageType: message?.type || null,
     userId : event.source.type === "user" ? event.source.userId : null,
-    userName: profile.displayName || "ผู้ใช้งาน",
+    userName : profile.displayName || "ผู้ใช้งาน",
     sourceType: source?.type || null,
     sourceId: source?.userId || source?.groupId || source?.roomId || null,
     timestamp: event.timestamp || Date.now(),
@@ -145,9 +145,9 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
 
         case "image":
           const choiceMessages = [ 
-            `ขอบคุณ สำหรับภาพที่ส่งมา! ${userName}`,
-            `ขอบคุณ ภาพที่ส่งมาดูดีมากเลย! ${userName}`,
-            `ขอบคุณ อย่าส่งภาพมาอีกนะ! ${userName}`,
+            `ขอบคุณ สำหรับภาพที่ส่งมา! ${metadata.userName}`,
+            `ขอบคุณ ภาพที่ส่งมาดูดีมากเลย! ${metadata.userName}`,
+            `ขอบคุณ อย่าส่งภาพมาอีกนะ! ${metadata.userName}`,
           ];
         
           const randomMessage = choiceMessages[Math.floor(Math.random() * choiceMessages.length)]; 
