@@ -60,9 +60,9 @@ global.appData = {
 // Webhook (POST)
 // Webhook route (POST) สำหรับการจัดการ LINE Bot Events
 app.post("/webhook", async (req, res) => {
-    console.log("index.POST /webhook: Received a request", req.body);
+    //console.log("index.POST /webhook: Received a request", req.body);
     const events = req.body.events; // ประกาศก่อนใช้งาน
-    console.log("index.POST /webhook: events array:", events);
+    //console.log("index.POST /webhook: events array:", events);
 
     if (!events || !Array.isArray(events)) {
       console.error("index.POST /webhook: Invalid request body");
@@ -110,7 +110,7 @@ app.post("/webhook", async (req, res) => {
             return null;
           }
         }
-        console.log("index.Calling handleSwitchEventTypes...handleEvent.js!?!");
+        //console.log("index.Calling handleSwitchEventTypes...handleEvent.js!?!");
         await handleEventTypes(event, replyToken, userId, client, botUserId);
         console.log("index.POST /webhook: processed", event.type, "userId:", userId, "replyToken", replyToken);
         if (!global.userStatus[userId]) {

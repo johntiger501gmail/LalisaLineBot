@@ -25,7 +25,7 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
     profile = await client.getProfile(userId).catch(() => ({ displayName: "ไม่ทราบชื่อ" }));
   }
 
-  console.log("🧩 message object:", JSON.stringify(message, null, 2));
+  //console.log("🧩 message object:", JSON.stringify(message, null, 2));
   const metadata = {
     eventType: event.type || null,
     messageType: message?.type || null,
@@ -44,12 +44,12 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
   switch (event.type) {
     case "postback":
       const postbackData = event.postback.data;
-      console.log("sw.event.type:postbackData:", postbackData);
+      console.log("🧩sw.event.type:postbackData:", postbackData);
       //await handleSelectedMenu(event, client, event.replyToken, userId, postbackData);  // ใช้ await
       break;
       
     case "follow":
-      console.log("sw.event.type:Follow > ", message);
+      console.log("🧩sw.event.type:Follow > ", message);
       /*await client.replyMessage(replyToken, {
         type: "text",
         text: "sw.event.type:follow:ยินดีต้อนรับ! ขอบคุณที่เพิ่มฉันเป็นเพื่อน",
@@ -57,7 +57,7 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
       break;
 
     case "join":
-      console.log("sw.event.type:join > ", message);
+      console.log("🧩sw.event.type:join > ", message);
       const joinMessage = {
         type: "text",
         text: "sw.event.type:join:สวัสดีทุกคน! ฉันได้เข้าร่วมกลุ่มนี้แล้ว!"
@@ -66,12 +66,12 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
       break;
 
     case "leave":
-      console.log("sw.event.type: leave > ", message);
-      console.log(`sw.event:Left group: ${event.source.groupId}`);
+      console.log("🧩sw.event.type: leave > ", message);
+      console.log(`🧩sw.event:Left group: ${event.source.groupId}`);
       break;
 
     case "message":
-      console.log("sw.EventType:", event.type, "sw.Events.Message.type:", message.type);
+      console.log("🧩sw.EventType:", event.type, "sw.Events.Message.type:", message.type);
       
       if (!message || !message.type) {
         console.error("sw.Message or message.type is missing or invalid:", message);
@@ -82,7 +82,7 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
       }
       switch (message.type.toLowerCase()) {
         case "location":  // กรณีโลเคชัน
-          console.log("Received a location message:", message);
+          console.log("🧩sw.EventType:Received a location message:", message);
 
           const googleMapsLink = `https://www.google.com/maps?q=${message.latitude},${message.longitude}`;
 
@@ -120,7 +120,7 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
                     });
                   }
                 } catch (err) {
-                  console.error("Cannot fetch profile for mention:", name, err);
+                  console.error("sw.EventType:Cannot fetch profile for mention:", name, err);
                 }
               }
             }
@@ -131,23 +131,23 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
             try {
               await handleReplyMessage(event, replyToken, client, botUserId, mentionedUsers);
             } catch (error) {
-              console.error("Error handling reply message:", error);
+              console.error("sw.EventType:Error handling reply message:", error);
               await client.replyMessage(replyToken, {
                 type: "text",
-                text: "sw.repliedMessage:เกิดข้อผิดพลาดในการประมวลผลข้อความตอบกลับ",
+                text: "🧩sw.EventType:repliedMessage:เกิดข้อผิดพลาดในการประมวลผลข้อความตอบกลับ",
               });
             }
           } else {
-            console.log("sw.handleTextMessage message: " + message.text);
+            console.log("🧩sw.EventType.handleTextMessage message: " + message.text);
             await handleTextMessage(event, replyToken, userId, client, mentionedUsers);
           }
           break;
 
         case "image":
           const choiceMessages = [ 
-            `ขอบคุณ สำหรับภาพที่ส่งมา! ${metadata.userName}`,
-            `ขอบคุณ ภาพที่ส่งมาดูดีมากเลย! ${metadata.userName}`,
-            `ขอบคุณ อย่าส่งภาพมาอีกนะ! ${metadata.userName}`,
+            `🧩sw.EventType:ขอบคุณ สำหรับภาพที่ส่งมา! ${metadata.userName}`,
+            `🧩sw.EventType:ขอบคุณ ภาพที่ส่งมาดูดีมากเลย! ${metadata.userName}`,
+            `🧩sw.EventType:ขอบคุณ อย่าส่งภาพมาอีกนะ! ${metadata.userName}`,
           ];
         
           const randomMessage = choiceMessages[Math.floor(Math.random() * choiceMessages.length)]; 
@@ -157,11 +157,11 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
           //console.log("sw.handleImageMessage image: handleimage.js");
           try {
             const imagePath = await downloadAndSaveImage(event); // ดาวน์โหลดและบันทึกภาพ
-            console.log("swEvents.imagePath", JSON.stringify(imagePath, null, 2));
+            console.log("🧩sw.EventType.imagePath", JSON.stringify(imagePath, null, 2));
           
             if (!imagePath) {
               // ถ้าดาวน์โหลดภาพไม่สำเร็จ
-              console.error('Failed to download or save image');
+              console.error('🧩sw.EventType.Failed to download or save image');
               return null;
             }
           
