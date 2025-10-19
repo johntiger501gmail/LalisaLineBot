@@ -1,0 +1,8 @@
+# .gitignore
+projectdialog-439220-0c8ad2eb7aa2.json
+.vs/
+node_modules/
+.github/
+# Ignore the ffmpeg folder
+ffmpeg-20241223/
+STT/
