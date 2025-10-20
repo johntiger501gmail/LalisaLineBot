@@ -5,10 +5,10 @@ import { handleAudioMessage } from "./handleaudio.js";
 import { handleVideoMessage } from "./handlevideos.js";
 import { handleStickerMessage } from './handlesticker.js';
 import { handleImageMessage } from './handleimage.js';
+import { downloadAllExpiredFiles } from "./downloadAllExpiredFiles.js";
 import { sendFallbackMenu } from './ansmenu.js'
 import { downloadAndSaveImage } from './imageload.js'; 
 import { getGoogleSearchResults } from "./googles.js";
-import { downloadAllExpiredFiles } from "./downloadAllExpiredFiles.js";
 import { chatHistory, printChatHistory, exportChatHistoryJSON, exportChatHistoryCSV } from './chatExport.js';
 
 export async function handleEventTypes(event, replyToken, userId, client, botUserId) {
@@ -21,6 +21,9 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
 
   const message = event?.message || null;
   const source = event?.source || null;
+  // 🔹🧩 แทรกตรงนี้: ตรวจสอบคำสั่ง "download image"
+  const downloadFlags = {};
+  const allowedUsers = ["Uf67316a349dcaae214c7a084a4dba25b"];
   let profile = { displayName: "ไม่ทราบชื่อ" };
   if (userId) {
     profile = await client.getProfile(userId).catch(() => ({ displayName: "ไม่ทราบชื่อ" }));
@@ -40,9 +43,7 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
     filePath: null,
     textContent: message?.text || null
   };
-  // 🔹 แทรกตรงนี้: ตรวจสอบคำสั่ง "download image"
-  const allowedUsers = ["Uf67316a349dcaae214c7a084a4dba25b"];
-
+    
   // เมื่อรับข้อความ
   if (
     metadata.messageType === "text" &&
