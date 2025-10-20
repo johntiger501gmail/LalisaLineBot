@@ -81,6 +81,56 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
         }); */
       }
       switch (message.type.toLowerCase()) {
+        case "image":
+          const choiceMessages = [ 
+            `🧩sw.EventType:ขอบคุณ สำหรับภาพที่ส่งมา! ${metadata.userName}`,
+            `🧩sw.EventType:ขอบคุณ ภาพที่ส่งมาดูดีมากเลย! ${metadata.userName}`,
+            `🧩sw.EventType:ขอบคุณ อย่าส่งภาพมาอีกนะ! ${metadata.userName}`,
+          ];
+        
+          const randomMessage = choiceMessages[Math.floor(Math.random() * choiceMessages.length)]; 
+          const resultDBF = "ไม่มีข้อมูลจากไฟล์ DBF"; 
+          const intentResult = "ไม่มีกระบวนการ Intent";
+          const resultOther = "ไม่มีข้อมูลเพิ่มเติม";
+          //console.log("sw.handleImageMessage image: handleimage.js");
+          try {
+            const imagePath = await downloadAndSaveImage(event); // ดาวน์โหลดและบันทึกภาพ
+            console.log("🧩sw.EventType.imagePath", JSON.stringify(imagePath, null, 2));
+          
+            if (!imagePath) {
+              // ถ้าดาวน์โหลดภาพไม่สำเร็จ
+              console.error('🧩sw.EventType.Failed to download or save image');
+              return null;
+            }
+          
+            // สร้าง searchResult โดยใช้เส้นทางไฟล์
+            const fileName = imagePath.split('/').pop(); // แยกชื่อไฟล์จาก path
+            const baseUrl = "https://tiger501linebot.onrender.com/images"; // URL พื้นฐานของโฟลเดอร์ภาพ
+          
+            const searchResult = {
+              type: 'image',
+              originalContentUrl: `${baseUrl}/${fileName}`, // URL สำหรับภาพต้นฉบับ
+              previewImageUrl: `${baseUrl}/${fileName}`,   // URL สำหรับภาพตัวอย่าง
+              text: randomMessage,
+            };
+          
+            const contentText = { // รวมข้อมูลใน contentText
+              resultDBF: resultDBF || "ไม่มีข้อมูลจากฐานข้อมูล",
+              intentResult: intentResult || "ไม่มีกระบวนการ Intent",
+              searchResult: searchResult || {},
+              resultOther: resultOther || "ไม่มีข้อมูลเพิ่มเติม",
+            };
+          
+            // ส่งข้อความกลับไปยังผู้ใช้ในรูปแบบ Flex Message
+            await sendFallbackMenu(replyToken, client, userId, searchResult, contentText);
+          } catch (error) {
+            console.error("Error in handleImageMessage:", {
+              message: error.message,
+              response: error.response?.data,
+            });
+          }            
+          await handleImageMessage(event, replyToken, userId, client);  // ใช้ await
+          break;
         case "location":  // กรณีโลเคชัน
           console.log("🧩sw.EventType:Received a location message:", message);
 
@@ -141,57 +191,6 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
             console.log("🧩sw.EventType.handleTextMessage message: " + message.text);
             await handleTextMessage(event, replyToken, userId, client, mentionedUsers);
           }
-          break;
-
-        case "image":
-          const choiceMessages = [ 
-            `🧩sw.EventType:ขอบคุณ สำหรับภาพที่ส่งมา! ${metadata.userName}`,
-            `🧩sw.EventType:ขอบคุณ ภาพที่ส่งมาดูดีมากเลย! ${metadata.userName}`,
-            `🧩sw.EventType:ขอบคุณ อย่าส่งภาพมาอีกนะ! ${metadata.userName}`,
-          ];
-        
-          const randomMessage = choiceMessages[Math.floor(Math.random() * choiceMessages.length)]; 
-          const resultDBF = "ไม่มีข้อมูลจากไฟล์ DBF"; 
-          const intentResult = "ไม่มีกระบวนการ Intent";
-          const resultOther = "ไม่มีข้อมูลเพิ่มเติม";
-          //console.log("sw.handleImageMessage image: handleimage.js");
-          try {
-            const imagePath = await downloadAndSaveImage(event); // ดาวน์โหลดและบันทึกภาพ
-            console.log("🧩sw.EventType.imagePath", JSON.stringify(imagePath, null, 2));
-          
-            if (!imagePath) {
-              // ถ้าดาวน์โหลดภาพไม่สำเร็จ
-              console.error('🧩sw.EventType.Failed to download or save image');
-              return null;
-            }
-          
-            // สร้าง searchResult โดยใช้เส้นทางไฟล์
-            const fileName = imagePath.split('/').pop(); // แยกชื่อไฟล์จาก path
-            const baseUrl = "https://tiger501linebot.onrender.com/images"; // URL พื้นฐานของโฟลเดอร์ภาพ
-          
-            const searchResult = {
-              type: 'image',
-              originalContentUrl: `${baseUrl}/${fileName}`, // URL สำหรับภาพต้นฉบับ
-              previewImageUrl: `${baseUrl}/${fileName}`,   // URL สำหรับภาพตัวอย่าง
-              text: randomMessage,
-            };
-          
-            const contentText = { // รวมข้อมูลใน contentText
-              resultDBF: resultDBF || "ไม่มีข้อมูลจากฐานข้อมูล",
-              intentResult: intentResult || "ไม่มีกระบวนการ Intent",
-              searchResult: searchResult || {},
-              resultOther: resultOther || "ไม่มีข้อมูลเพิ่มเติม",
-            };
-          
-            // ส่งข้อความกลับไปยังผู้ใช้ในรูปแบบ Flex Message
-            await sendFallbackMenu(replyToken, client, userId, searchResult, contentText);
-          } catch (error) {
-            console.error("Error in handleImageMessage:", {
-              message: error.message,
-              response: error.response?.data,
-            });
-          }            
-          await handleImageMessage(event, replyToken, userId, client);  // ใช้ await
           break;
 
         case "audio":

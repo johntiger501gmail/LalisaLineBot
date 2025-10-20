@@ -8,17 +8,17 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const destinationDir = path.join(__dirname, 'images');
-const serverUrl = "https://tiger501linebot.onrender.com";  // กำหนด URL ของเซิร์ฟเวอร์
+const serverUrl = "https://lalisalinebot.onrender.com"; // กำหนด URL ของเซิร์ฟเวอร์ "https://tiger501linebot.onrender.com";
 
 export async function downloadAndSaveImage(event) {
   // ตรวจสอบและดึงข้อมูลภาพจาก event
   if (!event || !event.message) {
-    console.error("Invalid event or missing message data");
+    console.error("imageload.Invalid event or missing message data");
     return;
   }
   const imageId = event.message.id; // ID ของข้อความที่เป็นภาพ
   if (!imageId) {
-    console.error("No image ID found in the message");
+    console.error("imageload.No image ID found in the message");
     return;
   }
   const downloadUrl = `https://api-data.line.me/v2/bot/message/${imageId}/content`;
@@ -96,7 +96,7 @@ export async function checkUrl(imageUrl) {
       }
   } catch (error) {
       // ไม่พิมพ์ข้อความข้อผิดพลาดในกรณีที่เกิดข้อผิดพลาด
-      console.log("ansmenu.checkUrl >> เปิดไม่ได้ url:", imageUrl);
+      console.log("imageload.checkUrl >> เปิดไม่ได้ url:", imageUrl);
       return false;  // ถ้าเกิดข้อผิดพลาดจะคืนค่า false
   }
 }
