@@ -1,8 +1,8 @@
-//import { handleSelectedMenu } from './handleselect.js';
-import { handleAudioMessage } from "./handleaudio.js";
-import { handleVideoMessage } from "./handlevideos.js";
+import { handleSelectedMenu } from './handleselect.js';
 import { handleReplyMessage } from "./handlereplys.js";
 import { handleTextMessage } from "./handletextmess.js";
+import { handleAudioMessage } from "./handleaudio.js";
+import { handleVideoMessage } from "./handlevideos.js";
 import { handleStickerMessage } from './handlesticker.js';
 import { handleImageMessage } from './handleimage.js';
 import { sendFallbackMenu } from './ansmenu.js'
@@ -82,55 +82,47 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
       }
       switch (message.type.toLowerCase()) {
         case "image":
-          const choiceMessages = [ 
-            `🧩sw.message.type:ขอบคุณ สำหรับภาพที่ส่งมา! ${metadata.userName}`,
-            `🧩sw.message.type:ขอบคุณ ภาพที่ส่งมาดูดีมากเลย! ${metadata.userName}`,
-            `🧩sw.message.type:ขอบคุณ อย่าส่งภาพมาอีกนะ! ${metadata.userName}`,
-          ];
-        
-          const randomMessage = choiceMessages[Math.floor(Math.random() * choiceMessages.length)]; 
-          const resultDBF = "ไม่มีข้อมูลจากไฟล์ DBF"; 
-          const intentResult = "ไม่มีกระบวนการ Intent";
-          const resultOther = "ไม่มีข้อมูลเพิ่มเติม";
-          //console.log("sw.handleImageMessage image: handleimage.js");
           try {
-            const imagePath = await downloadAndSaveImage(event); // ดาวน์โหลดและบันทึกภาพ
+            // 🧩 1. รับภาพจากผู้ใช้ และดาวน์โหลด/บันทึกภาพในเซิร์ฟเวอร์
+            const imagePath = await downloadAndSaveImage(event);
             console.log("🧩sw.message.type.imagePath", JSON.stringify(imagePath, null, 2));
-          
+
             if (!imagePath) {
-              // ถ้าดาวน์โหลดภาพไม่สำเร็จ
-              console.error('🧩sw.message.type.Failed to download or save image');
+              console.error("🧩sw.message.type.Failed to download or save image");
               return null;
             }
-          
-            // สร้าง searchResult โดยใช้เส้นทางไฟล์
-            const fileName = imagePath.split('/').pop(); // แยกชื่อไฟล์จาก path
-            const baseUrl = "https://lalisalinebot.onrender.com/images"; //พื้นฐานของโฟลเดอร์ภาพ URL https://tiger501linebot.onrender.com/images 
-          
+
+            // 🧩 4. สร้าง URL สำหรับภาพที่บันทึกไว้
+            const fileName = imagePath.split('/').pop();
+            const baseUrl = "https://lalisalinebot.onrender.com/images";
+
             const searchResult = {
               type: 'image',
-              originalContentUrl: `${baseUrl}/${fileName}`, // URL สำหรับภาพต้นฉบับ
-              previewImageUrl: `${baseUrl}/${fileName}`,   // URL สำหรับภาพตัวอย่าง
-              text: randomMessage,
+              originalContentUrl: `${baseUrl}/${fileName}`,
+              previewImageUrl: `${baseUrl}/${fileName}`,
             };
-          
-            const contentText = { // รวมข้อมูลใน contentText
-              resultDBF: resultDBF || "ไม่มีข้อมูลจากฐานข้อมูล",
-              intentResult: intentResult || "ไม่มีกระบวนการ Intent",
+
+            // 🧩 5. รวมข้อมูลทั้งหมดไว้ในอ็อบเจ็กต์ contentText
+            const contentText = {
+              resultDBF: "ไม่มีข้อมูลจากไฟล์ DBF",
+              intentResult: "ไม่มีกระบวนการ Intent",
               searchResult: searchResult || {},
-              resultOther: resultOther || "ไม่มีข้อมูลเพิ่มเติม",
+              resultOther: "ไม่มีข้อมูลเพิ่มเติม",
             };
-          
-            // ส่งข้อความกลับไปยังผู้ใช้ในรูปแบบ Flex Message
-            //await sendFallbackMenu(replyToken, client, userId, searchResult, contentText);
+
+            console.log("🧩sw.message.type.contentText", JSON.stringify(contentText, null, 2));
+
           } catch (error) {
+            // 🧩 7. บันทึก error ถ้ามีปัญหา
             console.error("sw.message.type.Error in handleImageMessage:", {
               message: error.message,
               response: error.response?.data,
             });
-          }            
-          await handleImageMessage(event, replyToken, userId, client);  // ใช้ await
+          }
+
+          await handleImageMessage(event, replyToken, userId, client);
           break;
+
         case "location":  // กรณีโลเคชัน
           console.log("🧩sw.message.type:Received a location message:", message);
 

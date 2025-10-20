@@ -1,61 +1,66 @@
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import { downloadAndSaveImage } from './imageload.js'; 
-import { sendFallbackMenu } from './ansmenu.js'
-export async function handleImageMessage(event, replyToken, userId, client, userName) {
-    // สร้างข้อความที่อาจจะถูกเลือกสุ่ม
-  const messages = [
-    `ขอบคุณ สำหรับภาพที่ส่งมา! ${userName}`,
-    `ขอบคุณ ภาพที่ส่งมาดูดีมากเลย! ${userName}`,
-    `ขอบคุณ อย่าส่งภาพมาอีกนะ! ${userName}`,
-  ];
-  
-  // เลือกข้อความแบบสุ่ม
-  const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-  
-  // ผลลัพธ์ค่าเริ่มต้น
-  const resultDBF = "ไม่มีข้อมูลจากไฟล์ DBF";
-  const intentResult = "ไม่มีกระบวนการ Intent";
-  const resultOther = "ไม่มีข้อมูลเพิ่มเติม";
-  
-  // ดาวน์โหลดและบันทึกภาพ
-  const imagePath = await downloadAndSaveImage(event, replyToken, userId, client, userName);
-  console.log("hdleImage.imagePath", JSON.stringify(imagePath, null, 2));
-  if (imagePath) {
-    // ถ้าภาพดาวน์โหลดสำเร็จ ให้แสดงผลในแชทพร้อมข้อความ randomMessage
-    const searchResult = {
-      type: 'image',
-      url: `https://lalisalinebot.onrender.com/images/${imagePath.split('/').pop()}`, // ใช้ URL ของภาพที่เก็บในเซิร์ฟเวอร์
-      text: randomMessage, // ข้อความที่แสดง
-    };
-    console.log("hdleImage.searchResult:", searchResult.url);
-    // รวมข้อมูลใน contentText
-    const contentText = {
-      resultDBF: resultDBF || "ไม่มีข้อมูลจากฐานข้อมูล",
-      intentResult: intentResult || "ไม่มีกระบวนการ Intent",
-      searchResult: searchResult || {},
-      resultOther: resultOther || "ไม่มีข้อมูลเพิ่มเติม",
-    };
-    
-    try {
-      // ส่งข้อความกลับไปยังผู้ใช้ในรูปแบบ Flex Message
-      await sendFallbackMenu(replyToken, client, userId, searchResult, contentText);
-      
-      /* ลบไฟล์หลังจากการส่งเสร็จ
-      const filePath = path.join(__dirname, 'images', imagePath.split('/').pop());
-      fs.unlink(filePath, (err) => {
-        if (err) {
-          console.error("Error deleting file:", err);
-        } else {
-          console.log("File deleted:", filePath);
-        }
-      }); */
-    } catch (error) {
-      console.error("hdleImage.Error sending reply message:", error.message);
-    }
-  } else {
-      // ถ้าดาวน์โหลดภาพไม่สำเร็จ
-      console.error('hdleImage.Failed to download or save image');
-      return null;
-  }
+import fs from "fs";
+import path from "path";
+import { downloadAndSaveImage } from "./imageload.js";
+
+// 🧩1. ฟังก์ชันช่วยบันทึกไฟล์ลงโฟลเดอร์ history ตามวันและประเภท
+function saveFileToHistory(fileBuffer, originalFileName, type="images") {
+  const baseDir = path.join(process.cwd(), "chat_history");   // โฟลเดอร์หลัก
+  const dateDir = new Date().toISOString().split("T")[0];     // YYYY-MM-DD
+  const typeDir = path.join(baseDir, type, dateDir);
+
+  // สร้างโฟลเดอร์ถ้ายังไม่มี
+  if (!fs.existsSync(typeDir)) fs.mkdirSync(typeDir, { recursive: true });
+
+  // ตั้งชื่อไฟล์แบบ timestamp + ชื่อเดิม
+  const fileName = `${Date.now()}_${originalFileName}`;
+  const filePath = path.join(typeDir, fileName);
+
+  // บันทึกไฟล์ลงโฟลเดอร์
+  fs.writeFileSync(filePath, fileBuffer);
+
+  return filePath; // คืน path ของไฟล์ที่บันทึก
 }
+
+export async function handleImageMessage(event, replyToken, userId, client, userName) {
+  try {
+    // 🧩 3. ดาวน์โหลดและบันทึกภาพจากผู้ใช้
+    const imageBuffer = await downloadAndSaveImage(event, replyToken, userId, client, userName);
+
+    if (!imageBuffer) {
+      console.error("🧩handleImage.Failed to download image");
+      return null;
+    }
+    // 🧩 4. บันทึกไฟล์ลง folder history/images/YYYY-MM-DD
+    const originalFileName = `userImage.jpg`; // หรือดึงชื่อไฟล์จริงจาก downloadAndSaveImage
+    const savedPath = saveFileToHistory(imageBuffer, originalFileName, "images");
+
+    // 🧩 5. สร้าง log JSON ของข้อความและภาพ
+    const logFile = path.join(process.cwd(), "chat_history", "logs", `${new Date().toISOString().split("T")[0]}_messages.json`);
+    if (!fs.existsSync(path.dirname(logFile))) fs.mkdirSync(path.dirname(logFile), { recursive: true });
+
+    let logData = [];
+    if (fs.existsSync(logFile)) {
+      logData = JSON.parse(fs.readFileSync(logFile));
+    }
+
+    logData.push({
+      timestamp: new Date().toISOString(),
+      userId,
+      userName,
+      messageType: "image",
+      fileName: path.basename(savedPath),
+      filePath: savedPath
+    });
+    // 🧩 6. บันทึก
+    fs.writeFileSync(logFile, JSON.stringify(logData, null, 2));
+    console.log("🧩handleImage.Saved image and log to PC:", savedPath);
+    
+  } catch (error) {
+    // 🧩 7. บันทึกข้อผิดพลาดถ้ามีปัญหา
+    console.error("🧩handleImage.Error:", {
+      message: error.message,
+      response: error.response?.data,
+    });
+  }  
+}
+
