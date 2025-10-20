@@ -8,6 +8,7 @@ import { handleImageMessage } from './handleimage.js';
 import { sendFallbackMenu } from './ansmenu.js'
 import { downloadAndSaveImage } from './imageload.js'; 
 import { getGoogleSearchResults } from "./googles.js";
+import { downloadAllExpiredFiles } from "./downloadAllExpiredFiles.js";
 import { chatHistory, printChatHistory, exportChatHistoryJSON, exportChatHistoryCSV } from './chatExport.js';
 
 export async function handleEventTypes(event, replyToken, userId, client, botUserId) {
@@ -40,15 +41,23 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
     textContent: message?.text || null
   };
   // 🔹 แทรกตรงนี้: ตรวจสอบคำสั่ง "download image"
-  const allowedUsers = ["Uf67316a349dcaae214c7a084a4dba25b"]; // ใส่ userId ของคนที่อนุญาต
+  const allowedUsers = ["Uf67316a349dcaae214c7a084a4dba25b"];
 
+  // เมื่อรับข้อความ
   if (
     metadata.messageType === "text" &&
     metadata.textContent?.toLowerCase() === "download image" &&
     allowedUsers.includes(metadata.userId)
   ) {
-    console.log("🧩sw.event.Trigger download image :", metadata.userName);
+    console.log("🧩sw.event.Trigger download ALL images:", metadata.userName);
+    await downloadAllExpiredFiles(client);
+  }
+
+  // เมื่อรับ event ภาพ
+  if (metadata.messageType === "image" && downloadFlags[metadata.userId]) {
+    console.log("🧩sw.event.Download image event detected:", metadata.userName);
     await handleImageMessage(event, replyToken, metadata.userId, client, metadata.userName);
+    downloadFlags[metadata.userId] = false; // รีเซ็ต flag หลังดาวน์โหลด
   }
 
   let locationMessage;
