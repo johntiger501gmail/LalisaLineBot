@@ -46,7 +46,7 @@ export function createFooter(userId, resultOther, message, ownerId, imageUrl) {
     //console.log(`createFooter: message: ${message} userId = ${userId}, userClickStatus = ${userStatus}`);
     //console.log(`createFooter: Info - label: "${buttonInfoConfig.label}", "${buttonInfoConfig.color}", data: "${buttonInfoConfig.data}"`);
     //console.log(`createFooter: Google - label: "${buttonGoogleConfig.label}", data: "${buttonGoogleConfig.data}"`);
-    console.log(`createFooter.Google.data: "${buttonGoogleConfig.data}"`);
+    //console.log(`createFooter.Google.data: "${buttonGoogleConfig.data}"`);
     // สร้างฟุตเตอร์
     const footer = {
         type: "box",

@@ -124,8 +124,8 @@ export async function sendFallbackMenu(replyToken, client, userId, message, cont
     } catch (error) {
         console.error("Error in sendFallbackMenu:", error.message);
         if (error.response) {
-            console.error("Response status:", error.response.status);
-            console.error("Response data:", JSON.stringify(error.response.data, null, 2));
+            console.error("ansMenu.Response status:", error.response.status);
+            console.error("ansMenu.Response data:", JSON.stringify(error.response.data, null, 2));
         }
     }
 }
@@ -148,7 +148,7 @@ export async function checkUrl(imageUrl) {
 async function safeReplyMessage(replyToken, client, message) {
     // ตรวจสอบว่า replyToken ถูกใช้งานไปแล้วหรือยัง
     if (usedReplyTokens.has(replyToken)) {
-        console.error("ReplyToken has already been used:", replyToken);
+        console.error("ansMenu.ReplyToken has already been used:", replyToken);
         return;
     }
 
@@ -157,10 +157,10 @@ async function safeReplyMessage(replyToken, client, message) {
         await client.replyMessage(replyToken, message);
         usedReplyTokens.add(replyToken);
     } catch (error) {
-        console.error("Failed to send reply message:", error.message);
+        console.error("ansMenu.Failed to send reply message:", error.message);
         if (error.response) {
-            console.error("Response status:", error.response.status);
-            console.error("Response data:", JSON.stringify(error.response.data, null, 2));
+            console.error("ansMenu.Response status:", error.response.status);
+            console.error("ansMenu.Response data:", JSON.stringify(error.response.data, null, 2));
         }
         throw error; // โยนข้อผิดพลาดต่อไปเพื่อจัดการเพิ่มเติม
     }

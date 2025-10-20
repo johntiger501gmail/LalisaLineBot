@@ -70,7 +70,7 @@ export async function downloadAndSaveImage(event) {
     // ตรวจสอบ URL ที่สามารถเปิดได้
     const imageUrl = `${serverUrl}/images/${fileName}`;
     //console.log(`imageload.filePath: ${filePath}`);
-    console.log(`imageload.imageUrl: ${imageUrl}`);
+    console.log(`✅imageload.imageUrl: ${imageUrl}`);
     const filecanopen = await checkUrl(imageUrl);
     if (!filecanopen) {
       console.error(`imageload.File ${imageUrl} can't be opened`);

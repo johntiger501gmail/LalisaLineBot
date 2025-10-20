@@ -20,15 +20,15 @@ export async function handleImageMessage(event, replyToken, userId, client, user
   
   // ดาวน์โหลดและบันทึกภาพ
   const imagePath = await downloadAndSaveImage(event, replyToken, userId, client, userName);
-  console.log("swEvents.imagePath", JSON.stringify(imagePath, null, 2));
+  console.log("handleImage.imagePath", JSON.stringify(imagePath, null, 2));
   if (imagePath) {
     // ถ้าภาพดาวน์โหลดสำเร็จ ให้แสดงผลในแชทพร้อมข้อความ randomMessage
     const searchResult = {
       type: 'image',
-      url: `https://tiger501linebot.onrender.com/images/${imagePath.split('/').pop()}`, // ใช้ URL ของภาพที่เก็บในเซิร์ฟเวอร์
+      url: `https://lalisalinebot.onrender.com/images/${imagePath.split('/').pop()}`, // ใช้ URL ของภาพที่เก็บในเซิร์ฟเวอร์
       text: randomMessage, // ข้อความที่แสดง
     };
-    console.log("swEvents.searchResult.url", searchResult.url);
+    console.log("handleImage.searchResult.url", searchResult.url);
     // รวมข้อมูลใน contentText
     const contentText = {
       resultDBF: resultDBF || "ไม่มีข้อมูลจากฐานข้อมูล",
@@ -51,11 +51,11 @@ export async function handleImageMessage(event, replyToken, userId, client, user
         }
       }); */
     } catch (error) {
-      console.error("Error sending reply message:", error.message);
+      console.error("handleImage.Error sending reply message:", error.message);
     }
   } else {
       // ถ้าดาวน์โหลดภาพไม่สำเร็จ
-      console.error('Failed to download or save image');
+      console.error('handleImage.Failed to download or save image');
       return null;
   }
 }
