@@ -39,6 +39,17 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
     filePath: null,
     textContent: message?.text || null
   };
+  // 🔹 แทรกตรงนี้: ตรวจสอบคำสั่ง "download image"
+  const allowedUsers = ["Uf67316a349dcaae214c7a084a4dba25b"]; // ใส่ userId ของคนที่อนุญาต
+
+  if (
+    metadata.messageType === "text" &&
+    metadata.textContent?.toLowerCase() === "download image" &&
+    allowedUsers.includes(metadata.userId)
+  ) {
+    console.log("🧩sw.event.Trigger download image :", metadata.userName);
+    await handleImageMessage(event, replyToken, metadata.userId, client, metadata.userName);
+  }
 
   let locationMessage;
   switch (event.type) {
