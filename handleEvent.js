@@ -1,8 +1,8 @@
 //import { handleSelectedMenu } from './handleselect.js';
 import { handleAudioMessage } from "./handleaudio.js";
-import { handleVideoMessage } from "./videos.js";
-import { handleReplyMessage } from "./replys.js";
-import { handleTextMessage } from "./textmessages.js";
+import { handleVideoMessage } from "./handlevideos.js";
+import { handleReplyMessage } from "./handlereplys.js";
+import { handleTextMessage } from "./handletextmess.js";
 import { handleStickerMessage } from './handlesticker.js';
 import { handleImageMessage } from './handleimage.js';
 import { sendFallbackMenu } from './ansmenu.js'

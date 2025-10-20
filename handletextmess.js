@@ -7,7 +7,7 @@ import { validateUrl } from "./googles.js";
 import { isValidImageUrl} from './handleselect.js';
 import { getRichPreviewMetaTags } from './handletools.js';
 export const handleTextMessage = async (event, replyToken, userId, client) => {
-  //console.log("handleTextMessage started:", { userId, replyToken, message: event?.message?.text });
+  //console.log("handleTextMess started:", { userId, replyToken, message: event?.message?.text });
   const groupId = event?.source?.groupId || null;  // ประกาศ groupId
   if (!global.intentStatus[userId]) {
     global.intentStatus[userId] = { fulfillmentText: "noIntentResult" };
@@ -25,10 +25,10 @@ export const handleTextMessage = async (event, replyToken, userId, client) => {
   const urlPattern = /https?:\/\/(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+/;
   try {
     if (!event || typeof event !== "object") {
-      console.error("textMessage.Invalid event structure:", event);
+      console.error("handleTextMess.Invalid event structure:", event);
       return;
     }
-    //console.log("textMessage.Valid event structure:", event);
+    //console.log("handleTextMess.Valid event structure:", event);
 
     const eventType = event.type || null; // ประเภทของ event
     const source = event.source || null; // แหล่งที่มาของ event
@@ -36,15 +36,15 @@ export const handleTextMessage = async (event, replyToken, userId, client) => {
       type: "text",  // กำหนดประเภทเป็นข้อความ
       text: event?.message?.text || null  // ใช้ข้อความจาก event หรือ null หากไม่มี
     };
-    //console.log("textMessage.Received message.text:", message.text);
+    //console.log("handleTextMess.Received message.text:", message.text);
     let FullintentResult = message.text || null;
     sourceType = source ? source.type : null; // กำหนดค่าของ sourceType      
     if (event?.message?.type !== 'text' || !message) { // ตรวจสอบว่า message มีประเภทเป็น text หรือไม่
-      console.error("textMessage.Invalid or unsupported message type", event?.message.text);
+      console.error("handleTextMess.Invalid or unsupported message type", event?.message.text);
       return;
     }
     if (!message.text || message.text.length > 1000) {
-      console.error("textMessage.Message text too long:", message.text);
+      console.error("handleTextMess.Message text too long:", message.text);
       return;
     }
     
@@ -63,11 +63,11 @@ export const handleTextMessage = async (event, replyToken, userId, client) => {
         const urlMessage = isValidImageUrl(cleanedUrl);
     
         if (urlMessage) {
-          //console.log("URL is a valid image:", cleanedUrl);
+          //console.log("handleTextMess.URL is a valid image:", cleanedUrl);
     
           // ตรวจสอบ Rich Preview
           if (urlPattern.test(cleanedUrl)) {
-            //console.log("Valid URL pattern for rich preview:", cleanedUrl);
+            //console.log("handleTextMess.Valid URL pattern for rich preview:", cleanedUrl);
     
             try {
               const metaTags = await getRichPreviewMetaTags(cleanedUrl);
@@ -88,21 +88,21 @@ export const handleTextMessage = async (event, replyToken, userId, client) => {
                   text: cleanedUrl,
                 };
               } else {
-                console.warn("No rich preview data found for URL:", cleanedUrl);
+                console.warn("handleTextMess.No rich preview data found for URL:", cleanedUrl);
                 searchResult = {
                   type: "text",
                   text: "ไม่พบข้อมูล Rich Preview สำหรับ URL นี้",
                 };
               }
             } catch (error) {
-              console.error("Error fetching rich preview:", error.message);
+              console.error("handleTextMess.Error fetching rich preview:", error.message);
               searchResult = {
                 type: "text",
                 text: "เกิดข้อผิดพลาดในการดึงข้อมูล Rich Preview จาก URL นี้",
               };
             }
           } else {
-            console.warn("URL does not match the expected pattern for rich preview:", cleanedUrl);
+            console.warn("handleTextMess.URL does not match the expected pattern for rich preview:", cleanedUrl);
             searchResult = {
               type: "text",
               text: "URL นี้ไม่รองรับ Rich Preview",
@@ -116,7 +116,7 @@ export const handleTextMessage = async (event, replyToken, userId, client) => {
           };
         }
       } catch (error) {
-        console.error("Error while processing URL:", error.message);
+        console.error("handleTextMess.Error while processing URL:", error.message);
         searchResult = {
           type: "text",
           text: "เกิดข้อผิดพลาดในการเปิด URL",
@@ -132,27 +132,27 @@ export const handleTextMessage = async (event, replyToken, userId, client) => {
     }
     if (sourceType === "user") {
         if (!userId) {
-            console.error("User ID is missing in source", event?.source);
+            console.error("handleTextMess.User ID is missing in source", event?.source);
             return;
         }
         try {
             FullintentResult = await handleUserMessage(replyToken, message.text, userId, client);
         } catch (error) {
-            console.error("Error in handleUserMessage:", error);
+            console.error("handleTextMess.Error in handleUserMessage:", error);
         }
     } else if (sourceType === "group") {
         const { userId, groupId } = event?.source || {};
         if (!userId || !groupId) {
-            console.error("Group or User ID is missing in source", event?.source);
+            console.error("handleTextMess.Group or User ID is missing in source", event?.source);
             return;
         }
         try {
             FullintentResult = await handleGroupMessage(replyToken, message.text, userId, groupId, client);
         } catch (error) {
-            console.error("Error in handleGroupMessage:", error);
+            console.error("handleTextMess.Error in handleGroupMessage:", error);
         }
     } else {
-        console.error("Unsupported source type", sourceType);
+        console.error("handleTextMess.Unsupported source type", sourceType);
         FullintentResult = { fulfillmentText: "ประเภทแหล่งข้อมูลไม่รองรับ" };
     }
 
@@ -170,16 +170,16 @@ export const handleTextMessage = async (event, replyToken, userId, client) => {
         
     // ตรวจสอบค่าที่ต้องการก่อนส่ง
     if (!replyToken || !client || !userId || !contentText) {
-      console.error("Missing required parameters for sendFallbackMenu:", { replyToken, client, userId, contentText });
+      console.error("handleTextMess.Missing required parameters for sendFallbackMenu:", { replyToken, client, userId, contentText });
       return;
     }
     
     // ส่งข้อความ
-    console.log("textMessage.FlexMenu:", userId, "message.text", message.text);
+    console.log("handleTextMess.FlexMenu:", userId, "message.text", message.text);
     sendFallbackMenu(replyToken, client, userId, message, contentText);
 
   } catch (error) {
-    console.error("textMessage.Error:", error.message);
+    console.error("handleTextMess.Error:", error.message);
   }
 }
 
