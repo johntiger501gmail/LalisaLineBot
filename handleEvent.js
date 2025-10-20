@@ -245,12 +245,19 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
       break;
 
     default:
-      console.log("Unknown event type:", event.type);
-      console.error("Unsupported event type:", event.type);
-      await client.message(replyToken, {
-        type: "text",
-        text: "default.event.type:ขออภัย ไม่สามารถประมวลผลข้อความของคุณได้",
-      });
+      console.log("sw.message.type.Unknown event type:", event.type);
+      console.error("sw.message.type.Unsupported event type:", event.type);
+      if (replyToken && replyToken !== "00000000000000000000000000000000") {
+        await client.replyMessage(replyToken, {
+          type: "text",
+          text: "default.event.type:ขออภัย ไม่สามารถประมวลผลข้อความของคุณได้",
+        });
+      } else {
+        await client.pushMessage(userId, {
+          type: "text",
+          text: "default.event.type:ขออภัย ไม่สามารถประมวลผลข้อความของคุณได้",
+        });
+      }
       break;
   }
   // บันทึก metadata
