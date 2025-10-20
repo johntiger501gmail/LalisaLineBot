@@ -25,10 +25,10 @@ export const handleTextMessage = async (event, replyToken, userId, client) => {
   const urlPattern = /https?:\/\/(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+/;
   try {
     if (!event || typeof event !== "object") {
-      console.error("Invalid event structure:", event);
+      console.error("textMessage.Invalid event structure:", event);
       return;
     }
-    //console.log("Valid event structure:", event);
+    //console.log("textMessage.Valid event structure:", event);
 
     const eventType = event.type || null; // ประเภทของ event
     const source = event.source || null; // แหล่งที่มาของ event
@@ -36,7 +36,7 @@ export const handleTextMessage = async (event, replyToken, userId, client) => {
       type: "text",  // กำหนดประเภทเป็นข้อความ
       text: event?.message?.text || null  // ใช้ข้อความจาก event หรือ null หากไม่มี
     };
-    //console.log("Received message.text:", message.text);
+    //console.log("textMessage.Received message.text:", message.text);
     let FullintentResult = message.text || null;
     sourceType = source ? source.type : null; // กำหนดค่าของ sourceType      
     if (event?.message?.type !== 'text' || !message) { // ตรวจสอบว่า message มีประเภทเป็น text หรือไม่

@@ -105,7 +105,7 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
           
             // สร้าง searchResult โดยใช้เส้นทางไฟล์
             const fileName = imagePath.split('/').pop(); // แยกชื่อไฟล์จาก path
-            const baseUrl = "https://tiger501linebot.onrender.com/images"; // URL พื้นฐานของโฟลเดอร์ภาพ
+            const baseUrl = "https://lalisalinebot.onrender.com/images"; // URL https://tiger501linebot.onrender.com/images พื้นฐานของโฟลเดอร์ภาพ
           
             const searchResult = {
               type: 'image',
