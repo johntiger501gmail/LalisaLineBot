@@ -112,14 +112,14 @@ app.post("/webhook", async (req, res) => {
         }
         //console.log("index.Calling handleSwitchEventTypes...handleEvent.js!?!");
         await handleEventTypes(event, replyToken, userId, client, botUserId);
-        console.log("index.POST /webhook: processed", event.type, "userId:", userId, "replyToken", replyToken);
+        console.log("index.POST/webhook:", event.type, "replyToken", replyToken);
         if (!global.userStatus[userId]) {
           global.userStatus[userId] = { sourceType };
-          console.log("index.User status initialized for:", userId);
+          console.log("index.User status initialized for userId:", userId);
         }
         if (groupId && !global.userStatus[groupId]) {
           global.userStatus[groupId] = { sourceType };
-          console.log("index.Group status initialized for:", groupId);
+          console.log("index.Group status initialized for groupId:", groupId);
         }
       };
       res.status(200).end();
