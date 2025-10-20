@@ -178,7 +178,8 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
           // ถ้าเป็นข้อความตอบกลับ
           if (message.repliedMessage && typeof message.repliedMessage === "object") {
             try {
-              await handleReplyMessage(event, replyToken, client, botUserId, mentionedUsers);
+              //await handleReplyMessage(event, replyToken, client, botUserId, mentionedUsers);
+              console.log("🧩sw.message.repliedMessage message: " + message.text);
             } catch (error) {
               console.error("🧩sw.message.type:Error handling reply message:", error);
               /*await client.replyMessage(replyToken, {
@@ -188,7 +189,7 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
             }
           } else {
             console.log("🧩sw.message.type.handleTextMessage message: " + message.text);
-            await handleTextMessage(event, replyToken, userId, client, mentionedUsers);
+            //await handleTextMessage(event, replyToken, userId, client, mentionedUsers);
           }
           break;
 
