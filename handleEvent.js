@@ -260,7 +260,7 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
   console.log(`swEvents.[${new Date(metadata.timestamp).toLocaleString()}] userId: ${metadata.userId}, userName: ${metadata.userName}, type: ${metadata.messageType}, content: ${metadata.textContent || metadata.filePath || "-"}`);
 
   // **บันทึก metadata ทุกชนิด**
-  saveEventMetadata(metadata);
+  //saveEventMetadata(metadata);
 }
 // ฟังก์ชันตัวอย่างสำหรับบันทึก metadata
 function saveEventMetadata(metadata) {

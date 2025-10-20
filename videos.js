@@ -12,13 +12,13 @@ export async function handleVideoMessage(event, replyToken, message, client) {
   const tempFilePath = path.join(__dirname, "temp_video.mp4");
 
   if (!videoUrl) {
-    console.log("Unknown video source:", videoUrl);
-    await client.replyMessage(replyToken, {
+    console.log("videos.Unknown video source:", videoUrl);
+    /*await client.replyMessage(replyToken, {
       type: "text",
       text: "ไม่พบ URL ของวิดีโอ",
     });
-    // ดาวน์โหลดวิดีโอ
-    console.log("videos:Downloading video from:", videoUrl);
+    // ดาวน์โหลดวิดีโอ */
+    console.log("videos.Downloading video from:", videoUrl);
     const response = await axios({
       url: videoUrl,
       method: "GET",
@@ -33,7 +33,7 @@ export async function handleVideoMessage(event, replyToken, message, client) {
       writer.on("error", reject);
     });
 
-    console.log("Videos: downloaded successfully:", tempFilePath);
+    console.log("videos.downloaded successfully:", tempFilePath);
 
     // ส่งวิดีโอกลับไปยังผู้ใช้
     const videoMessage = {
@@ -77,7 +77,7 @@ export async function handleVideoMessage(event, replyToken, message, client) {
   } finally {
     if (fs.existsSync(tempFilePath)) {
       fs.unlinkSync(tempFilePath);
-      console.log("Temporary file deleted:", tempFilePath);
+      console.log("videos.Temporary file deleted:", tempFilePath);
     }
   }
 }
