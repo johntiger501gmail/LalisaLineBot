@@ -115,11 +115,11 @@ app.post("/webhook", async (req, res) => {
         console.log("index.POST/webhook:", event.type, "replyToken", replyToken);
         if (!global.userStatus[userId]) {
           global.userStatus[userId] = { sourceType };
-          console.log("index.User status initialized for userId:", userId);
+          console.log("index.User Status initialized for userId:", userId);
         }
         if (groupId && !global.userStatus[groupId]) {
           global.userStatus[groupId] = { sourceType };
-          console.log("index.Group status initialized for groupId:", groupId);
+          console.log("index.Group Status initialized for groupId:", groupId);
         }
       };
       res.status(200).end();

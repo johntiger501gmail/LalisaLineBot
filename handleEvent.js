@@ -1,4 +1,4 @@
-import { handleSelectedMenu } from './handleselect.js';
+//import { handleSelectedMenu } from './handleselect.js';
 import { handleAudioMessage } from "./handleaudio.js";
 import { handleVideoMessage } from "./videos.js";
 import { handleReplyMessage } from "./replys.js";
@@ -83,9 +83,9 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
       switch (message.type.toLowerCase()) {
         case "image":
           const choiceMessages = [ 
-            `🧩sw.EventType:ขอบคุณ สำหรับภาพที่ส่งมา! ${metadata.userName}`,
-            `🧩sw.EventType:ขอบคุณ ภาพที่ส่งมาดูดีมากเลย! ${metadata.userName}`,
-            `🧩sw.EventType:ขอบคุณ อย่าส่งภาพมาอีกนะ! ${metadata.userName}`,
+            `🧩sw.message.type:ขอบคุณ สำหรับภาพที่ส่งมา! ${metadata.userName}`,
+            `🧩sw.message.type:ขอบคุณ ภาพที่ส่งมาดูดีมากเลย! ${metadata.userName}`,
+            `🧩sw.message.type:ขอบคุณ อย่าส่งภาพมาอีกนะ! ${metadata.userName}`,
           ];
         
           const randomMessage = choiceMessages[Math.floor(Math.random() * choiceMessages.length)]; 
@@ -95,17 +95,17 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
           //console.log("sw.handleImageMessage image: handleimage.js");
           try {
             const imagePath = await downloadAndSaveImage(event); // ดาวน์โหลดและบันทึกภาพ
-            console.log("🧩sw.EventType.imagePath", JSON.stringify(imagePath, null, 2));
+            console.log("🧩sw.message.type.imagePath", JSON.stringify(imagePath, null, 2));
           
             if (!imagePath) {
               // ถ้าดาวน์โหลดภาพไม่สำเร็จ
-              console.error('🧩sw.EventType.Failed to download or save image');
+              console.error('🧩sw.message.type.Failed to download or save image');
               return null;
             }
           
             // สร้าง searchResult โดยใช้เส้นทางไฟล์
             const fileName = imagePath.split('/').pop(); // แยกชื่อไฟล์จาก path
-            const baseUrl = "https://lalisalinebot.onrender.com/images"; // URL https://tiger501linebot.onrender.com/images พื้นฐานของโฟลเดอร์ภาพ
+            const baseUrl = "https://lalisalinebot.onrender.com/images"; //พื้นฐานของโฟลเดอร์ภาพ URL https://tiger501linebot.onrender.com/images 
           
             const searchResult = {
               type: 'image',
@@ -122,9 +122,9 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
             };
           
             // ส่งข้อความกลับไปยังผู้ใช้ในรูปแบบ Flex Message
-            await sendFallbackMenu(replyToken, client, userId, searchResult, contentText);
+            //await sendFallbackMenu(replyToken, client, userId, searchResult, contentText);
           } catch (error) {
-            console.error("Error in handleImageMessage:", {
+            console.error("sw.message.type.Error in handleImageMessage:", {
               message: error.message,
               response: error.response?.data,
             });
@@ -132,7 +132,7 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
           await handleImageMessage(event, replyToken, userId, client);  // ใช้ await
           break;
         case "location":  // กรณีโลเคชัน
-          console.log("🧩sw.EventType:Received a location message:", message);
+          console.log("🧩sw.message.type:Received a location message:", message);
 
           const googleMapsLink = `https://www.google.com/maps?q=${message.latitude},${message.longitude}`;
 
@@ -143,7 +143,6 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
                     `พิกัด: (${message.latitude}, ${message.longitude})\n\n` +
                     `ดูแผนที่: ${googleMapsLink}`
           };
-
           //await client.replyMessage(replyToken, locationMessage);
           break;
         case "text":
@@ -170,7 +169,7 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
                     });
                   }
                 } catch (err) {
-                  console.error("sw.EventType:Cannot fetch profile for mention:", name, err);
+                  console.error("sw.message.type:Cannot fetch profile for mention:", name, err);
                 }
               }
             }
@@ -181,14 +180,14 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
             try {
               await handleReplyMessage(event, replyToken, client, botUserId, mentionedUsers);
             } catch (error) {
-              console.error("🧩sw.EventType:Error handling reply message:", error);
+              console.error("🧩sw.message.type:Error handling reply message:", error);
               /*await client.replyMessage(replyToken, {
                 type: "text",
                 text: "🧩sw.EventType:repliedMessage:เกิดข้อผิดพลาดในการประมวลผลข้อความตอบกลับ",
               }); */
             }
           } else {
-            console.log("🧩sw.EventType.handleTextMessage message: " + message.text);
+            console.log("🧩sw.message.type.handleTextMessage message: " + message.text);
             await handleTextMessage(event, replyToken, userId, client, mentionedUsers);
           }
           break;
@@ -200,9 +199,9 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
               message = {
                 type: "text",
                 text: resultText.text || "ไม่สามารถถอดข้อความเสียงได้."};  // เอาข้อความที่แปลงจากเสียงมาใช้
-                console.log('swEvents.ข้อความที่แปลงจากเสียง:', message.text);
+                console.log('sw.message.type.ข้อความที่แปลงจากเสียง:', message.text);
             } else {
-                console.log('swEvents.ไม่สามารถได้รับข้อความจากบอท หรือ ข้อความไม่ใช่ string', resultText);
+                console.log('sw.message.type.ไม่สามารถได้รับข้อความจากบอท หรือ ข้อความไม่ใช่ string', resultText);
                 message = "";  // ถ้า resultText ไม่ใช่ข้อความที่แปลงได้
             }          
             const resultDBF = "ไม่มีข้อมูลจากไฟล์ DBF" || null;
@@ -219,10 +218,10 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
               resultOther: resultOther
             };
 
-            console.log("swEvents.audioHandling:", contentText?.searchResult?.text || "ไม่มีข้อความใน searchResult");
+            console.log("swmessage.type.audioHandling:", contentText?.searchResult?.text || "ไม่มีข้อความใน searchResult");
             sendFallbackMenu(replyToken, client, userId, message, contentText);
           } catch (error) {
-            console.error('เกิดข้อผิดพลาดในการจัดการข้อความเสียง:', error);
+            console.error('sw.message.type.เกิดข้อผิดพลาดในการจัดการข้อความเสียง:', error);
           }
           break;
 

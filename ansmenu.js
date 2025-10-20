@@ -6,7 +6,7 @@ import { createBodySTK } from './createbodystk.js';
 import { createBodySRCH } from './createbodysrch.js';
 import { createBodyImage } from './createbodyimage.js';
 import { createFooter } from './createmenu.js';
-import { formatSearchResultForDisplay } from './googles.js';
+//import { formatSearchResultForDisplay } from './googles.js';
 //import { getInstagramImageURL } from './googles.js';
 import { formatSearchResult } from './googles.js';
 //import { determineContentType } from './googles.js';
