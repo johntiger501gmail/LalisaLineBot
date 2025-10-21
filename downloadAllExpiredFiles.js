@@ -1,6 +1,11 @@
 import fs from "fs";
 import path from "path";
 import { google } from "googleapis";
+import { fileURLToPath } from "url";
+
+// แปลง URL ของโมดูลเป็น path
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Path ของไฟล์ JSON
 const keyPath = path.join(__dirname, "config", "lalisahistory-ebb204bd9a41.json");
