@@ -7,11 +7,12 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Path ของไฟล์ JSON
-const keyPath = path.join(__dirname, "config", "lalisahistory-ebb204bd9a41.json");
-
+// สร้าง Google Auth จาก environment variables
 const auth = new google.auth.GoogleAuth({
-  keyFile: keyPath,
+  credentials: {
+    client_email: process.env.GOOGLE_CLIENT_EMAIL,
+    private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+  },
   scopes: ["https://www.googleapis.com/auth/drive"],
 });
 
