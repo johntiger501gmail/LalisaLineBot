@@ -6,45 +6,37 @@ function ensureLogSetup() {
   const logDir = path.join(baseDir, "logs");
   const logFile = path.join(logDir, "messages.jsonl");
 
-  // ฟังก์ชันช่วยเขียน log ลงไฟล์
-  function writeLog(message) {
-    const timestamp = new Date().toISOString();
-    const fullMessage = `[${timestamp}] ${message}\n`;
-    fs.appendFileSync(logFile, fullMessage);
-    console.log(fullMessage.trim());
+  // ฟังก์ชันช่วยสร้างโฟลเดอร์
+  function createDir(dirPath) {
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+      console.log(`✅ สร้างโฟลเดอร์: ${dirPath}`);
+    } else {
+      console.log(`ℹ️ โฟลเดอร์มีอยู่แล้ว: ${dirPath}`);
+    }
+  }
+
+  // ฟังก์ชันช่วยสร้างไฟล์ log
+  function createLogFile(filePath) {
+    if (!fs.existsSync(filePath)) {
+      fs.writeFileSync(filePath, "");
+      console.log(`✅ สร้างไฟล์ log: ${filePath}`);
+    } else {
+      console.log(`ℹ️ ไฟล์ logมีอยู่แล้ว: ${filePath}`);
+    }
   }
 
   // สร้างโฟลเดอร์หลักและ logs
-  [baseDir, logDir].forEach(dir => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-      console.log(`✅ สร้างโฟลเดอร์: ${dir}`);
-    } else {
-      console.log(`ℹ️ โฟลเดอร์มีอยู่แล้ว: ${dir}`);
-    }
-  });
+  [baseDir, logDir].forEach(createDir);
 
-  // สร้างไฟล์ log ถ้ายังไม่มี
-  if (!fs.existsSync(logFile)) {
-    fs.writeFileSync(logFile, "");
-    console.log(`✅ สร้างไฟล์ log: ${logFile}`);
-  } else {
-    console.log(`ℹ️ ไฟล์ log มีอยู่แล้ว: ${logFile}`);
-  }
+  // สร้างไฟล์ log
+  createLogFile(logFile);
 
   // สร้างโฟลเดอร์สำหรับเก็บไฟล์ดาวน์โหลดล่วงหน้า
   const folders = ["images", "videos", "files", "audio"];
-  folders.forEach(f => {
-    const folderPath = path.join(baseDir, f);
-    if (!fs.existsSync(folderPath)) {
-      fs.mkdirSync(folderPath, { recursive: true });
-      writeLog(`สร้างโฟลเดอร์: ${folderPath}`);
-    } else {
-      writeLog(`โฟลเดอร์มีอยู่แล้ว: ${folderPath}`);
-    }
-  });
+  folders.forEach(f => createDir(path.join(baseDir, f)));
 
-  writeLog(`📂 การตั้งค่าโฟลเดอร์และไฟล์ log เสร็จเรียบร้อย: ${baseDir}`);
+  console.log(`📂 การตรวจสอบโฟลเดอร์และไฟล์ log เสร็จเรียบร้อย: ${baseDir}`);
 
   return { baseDir, logDir, logFile };
 }
