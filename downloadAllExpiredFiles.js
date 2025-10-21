@@ -3,19 +3,9 @@ import path from "path";
 import os from "os";
 
 function ensureLogSetup() {
-  let baseDir;
-
-  // ตรวจสอบระบบปฏิบัติการ
-  if (os.platform() === "win32") {
-    // 🖥️ ถ้าเป็นเครื่อง PC (Windows)
-    baseDir = "D:\\LalisaHistory";
-  } else {
-    // ☁️ ถ้าเป็น Linux / macOS / Render
-    baseDir = path.join(process.cwd(), "chat_history");
-  }
-
-  const logDir = path.join(baseDir, "logs");
-  const logFile = path.join(logDir, "messages.jsonl");
+  const baseDir = "D:\\LalisaHistory";
+  const logDir = "D:\\LalisaHistory\\logs";
+  const logFile = "D:\\LalisaHistory\\logs\\messages.jsonl";
 
   // ฟังก์ชันช่วยสร้างโฟลเดอร์
   function createDir(dirPath) {
