@@ -1,12 +1,21 @@
 import fs from "fs";
 import path from "path";
+import os from "os";
 
 function ensureLogSetup() {
-  // ใช้โฟลเดอร์ปัจจุบันของเครื่องเป็นฐาน
-  const baseDir = path.resolve(process.cwd(), "chat_history");
+  let baseDir;
+
+  // ตรวจสอบระบบปฏิบัติการ
+  if (os.platform() === "win32") {
+    // 🖥️ ถ้าเป็นเครื่อง PC (Windows)
+    baseDir = "D:\\LalisaHistory";
+  } else {
+    // ☁️ ถ้าเป็น Linux / macOS / Render
+    baseDir = path.join(process.cwd(), "chat_history");
+  }
+
   const logDir = path.join(baseDir, "logs");
   const logFile = path.join(logDir, "messages.jsonl");
-
 
   // ฟังก์ชันช่วยสร้างโฟลเดอร์
   function createDir(dirPath) {
@@ -31,17 +40,20 @@ function ensureLogSetup() {
   // สร้างโฟลเดอร์หลักและ logs
   [baseDir, logDir].forEach(createDir);
 
-  // สร้างไฟล์ log
+  // สร้างไฟล์ log ถ้ายังไม่มี
   createLogFile(logFile);
 
-  // สร้างโฟลเดอร์สำหรับเก็บไฟล์ดาวน์โหลดล่วงหน้า
+  // สร้างโฟลเดอร์ย่อยสำหรับเก็บไฟล์ดาวน์โหลดล่วงหน้า
   const folders = ["images", "videos", "files", "audio"];
-  folders.forEach(f => createDir(path.join(baseDir, f)));
+  folders.forEach((f) => createDir(path.join(baseDir, f)));
 
   console.log(`📂 การตรวจสอบโฟลเดอร์และไฟล์ log เสร็จเรียบร้อย: ${baseDir}`);
 
   return { baseDir, logDir, logFile };
 }
+
+export { ensureLogSetup };
+
 
 export default ensureLogSetup;
 
