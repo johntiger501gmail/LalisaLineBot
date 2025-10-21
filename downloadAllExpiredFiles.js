@@ -1,34 +1,45 @@
 import fs from "fs";
 import path from "path";
-import axios from "axios";
 
 /**
- * 🔹 ฟังก์ชัน: ดาวน์โหลดไฟล์ทั้งหมดที่มีวันหมดอายุ (จาก log)
- * - ตรวจ log ในโฟลเดอร์ chat_history/logs/
- * - ดาวน์โหลดเฉพาะไฟล์ที่ยังไม่มีในเครื่อง
- * - แยกเก็บตามประเภท (images / videos / files)
+ * 🔹 ตรวจสอบและสร้างโฟลเดอร์/ไฟล์ log หากยังไม่มี
+ */
+function ensureLogSetup() {
+  const baseDir = path.join(process.cwd(), "chat_history");
+  const logDir = path.join(baseDir, "logs");
+  const logFile = path.join(logDir, "messages.jsonl");
+
+  // ตรวจสอบโฟลเดอร์ chat_history
+  if (!fs.existsSync(baseDir)) {
+    console.log("🧩 สร้างโฟลเดอร์ chat_history...");
+    fs.mkdirSync(baseDir, { recursive: true });
+  }
+
+  // ตรวจสอบโฟลเดอร์ logs
+  if (!fs.existsSync(logDir)) {
+    console.log("🧩 สร้างโฟลเดอร์ logs...");
+    fs.mkdirSync(logDir, { recursive: true });
+  }
+
+  // ตรวจสอบไฟล์ messages.jsonl
+  if (!fs.existsSync(logFile)) {
+    console.log("🧩 สร้างไฟล์ log messages.jsonl ใหม่...");
+    fs.writeFileSync(logFile, "");
+  }
+
+  return { baseDir, logDir, logFile };
+}
+
+/**
+ * 🔹 ดาวน์โหลดไฟล์จาก log และอัปเดต log
  */
 export async function downloadAllExpiredFiles(client) {
   try {
-    const baseDir = path.join(process.cwd(), "chat_history");
-    const logDir = path.join(baseDir, "logs");
+    const { baseDir, logDir } = ensureLogSetup();
 
-    if (!fs.existsSync(logDir)) {
-      console.log("🧩downloadAll: ไม่มี log สำหรับดาวน์โหลด — กำลังสร้างโฟลเดอร์ใหม่...");
-      fs.mkdirSync(logDir, { recursive: true });
-
-      // 🔹 สร้างไฟล์ log เปล่า messages.jsonl ไว้เลย
-      const filePath = path.join(logDir, "messages.jsonl");
-      if (!fs.existsSync(filePath)) {
-        fs.writeFileSync(filePath, ""); // สร้างไฟล์เปล่า
-        console.log("🧩downloadAll: สร้างไฟล์ log messages.jsonl ใหม่เรียบร้อย");
-      }
-      // ❌ ไม่ return ให้ทำงานต่อ
-    }
-
-    // 🔸 อ่านไฟล์ log ทั้งหมด
+    // อ่านไฟล์ log ทั้งหมด
     const logFiles = fs.readdirSync(logDir).filter(f => f.endsWith(".jsonl"));
-    console.log(`🧩downloadAll: พบ log ทั้งหมด ${logFiles.length} ไฟล์`);
+    console.log(`🧩 พบ log ทั้งหมด ${logFiles.length} ไฟล์`);
 
     for (const logFile of logFiles) {
       const logPath = path.join(logDir, logFile);
@@ -37,7 +48,7 @@ export async function downloadAllExpiredFiles(client) {
 
       for (const item of logData) {
         if (!item.filePath && item.messageType && item.messageId) {
-          // 🔸 ตรวจประเภทไฟล์
+          // ตรวจประเภทไฟล์
           let folderType = "files";
           if (item.messageType === "image") folderType = "images";
           if (item.messageType === "video") folderType = "videos";
@@ -45,23 +56,21 @@ export async function downloadAllExpiredFiles(client) {
 
           const dateDir = new Date(item.timestamp).toISOString().split("T")[0];
           const typeDir = path.join(baseDir, folderType, dateDir);
-
           if (!fs.existsSync(typeDir)) fs.mkdirSync(typeDir, { recursive: true });
 
           const fileName = `${Date.now()}_${item.messageId}.${getFileExtension(folderType)}`;
           const filePath = path.join(typeDir, fileName);
 
-          // 🔸 ตรวจว่ามีไฟล์แล้วหรือยัง
+          // ข้ามไฟล์ที่มีอยู่แล้ว
           if (fs.existsSync(filePath)) {
-            console.log(`⏩downloadAll: ข้ามไฟล์ที่มีอยู่แล้ว: ${fileName}`);
+            console.log(`⏩ ข้ามไฟล์ที่มีอยู่แล้ว: ${fileName}`);
             continue;
           }
 
-          // 🔸 ดาวน์โหลดไฟล์จาก LINE API
-          console.log(`⬇️downloadAll: กำลังดาวน์โหลด ${item.messageType} (${item.messageId})...`);
+          // ดาวน์โหลดไฟล์จาก LINE API
+          console.log(`⬇️ ดาวน์โหลด ${item.messageType} (${item.messageId})...`);
           const stream = await client.getMessageContent(item.messageId);
 
-          // เขียน stream ลงไฟล์
           const writable = fs.createWriteStream(filePath);
           await new Promise((resolve, reject) => {
             stream.pipe(writable);
@@ -69,44 +78,30 @@ export async function downloadAllExpiredFiles(client) {
             stream.on("error", reject);
           });
 
-          // 🔸 อัปเดต log
           item.filePath = filePath;
-          console.log(`✅แ บันทึกไฟล์สำเร็จ: ${filePath}`);
+          console.log(`✅ บันทึกไฟล์สำเร็จ: ${filePath}`);
 
-          // 🔸 ตรวจสอบประเภทข้อความก่อน saveChatLog
-          const shouldSaveLog =
-            item.messageType === "image" ||
-            item.messageType === "video" ||
-            item.messageType === "audio" ||
-            item.messageType === "file" ||
-            (item.messageType === "richMessage" && (item.filePath || (item.text && item.text.length > 0)));
-
-          if (shouldSaveLog) {
-            saveChatLog(item);
-          }
-          console.log("🔹downloadAll:Folder:", logDir);
-          console.log("🔹downloadAll:File path:", filePath);
-          console.log("🔹downloadAll:File exists?", fs.existsSync(filePath));
+          // อัปเดต log
+          saveChatLog(item);
         }
       }
 
-      // 🔸 เขียน log กลับ (update filePath)
+      // เขียน log กลับไฟล์เดิม
       fs.writeFileSync(logPath, JSON.stringify(logData, null, 2));
     }
 
-    console.log("🎯downloadAll: ดาวน์โหลดไฟล์ทั้งหมดเสร็จสิ้น!");
+    console.log("🎯 ดาวน์โหลดไฟล์ทั้งหมดเสร็จสิ้น!");
 
   } catch (error) {
-    console.error("❌downloadAll: downloadAllExpiredFiles.Error:", error.message);
+    console.error("❌ downloadAllExpiredFiles.Error:", error.message);
   }
 }
 
-// 🔹 ปรับ saveChatLog ให้เก็บเฉพาะสิ่งที่จำเป็น
+/**
+ * 🔹 saveChatLog เก็บข้อมูลสำคัญ
+ */
 function saveChatLog(message) {
-  const baseDir = path.join(process.cwd(), "chat_history", "logs");
-  if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir, { recursive: true });
-
-  const filePath = path.join(baseDir, "messages.jsonl");
+  const { logFile } = ensureLogSetup();
 
   const logEntry = {
     timestamp: message.timestamp || new Date().toISOString(),
@@ -115,12 +110,11 @@ function saveChatLog(message) {
     filePath: message.filePath || null
   };
 
-  fs.appendFileSync(filePath, JSON.stringify(logEntry) + "\n");
+  fs.appendFileSync(logFile, JSON.stringify(logEntry) + "\n");
 }
 
-
 /**
- * 🔹 ตัวช่วย: คืนค่านามสกุลไฟล์ตามประเภท
+ * 🔹 คืนค่านามสกุลไฟล์ตามประเภท
  */
 function getFileExtension(type) {
   switch (type) {
