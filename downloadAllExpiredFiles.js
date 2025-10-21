@@ -31,27 +31,23 @@ const __dirname = path.dirname(__filename);
  */
 export async function downloadAllExpiredFiles(client) {
   try {
-    const { baseDir, logDir } = ensureLocalFolders(); // ✅ ตอนนี้แน่นอนว่าไม่ undefined
+    const { baseDir, logs: logDir, images, videos, audio } = ensureLocalFolders();
     console.log("🧩 DEBUG ensureLocalFolders():", { baseDir, logDir });
 
-    // อ่านไฟล์ log messages.jsonl
+    // สร้าง log file ถ้ายังไม่มี
     const logFile = path.join(logDir, "messages.jsonl");
-    // ถ้าไฟล์ยังไม่มี ให้สร้างไฟล์ว่าง
-    if (!fs.existsSync(logFile)) {
-      fs.writeFileSync(logFile, "", "utf-8");
-      console.log("ℹ️ สร้างไฟล์ log ใหม่: messages.jsonl");
-    }
+    if (!fs.existsSync(logFile)) fs.writeFileSync(logFile, "", "utf-8");
+
+    // สร้างโฟลเดอร์บน Drive 4 อันล่วงหน้า
+    const driveFolders = await ensureDriveFolders();
 
     const lines = fs.readFileSync(logFile, "utf-8")
                     .split("\n")
                     .filter(l => l.trim() !== "");
     const logData = lines.map(l => JSON.parse(l));
 
-    console.log(`🧩 downloadAll: พบ log ทั้งหมด ${logData.length} รายการ`);
-
     for (const item of logData) {
       if (!item.filePath && item.messageType && item.messageId) {
-        // ตรวจประเภทไฟล์
         let folderType = "files";
         if (item.messageType === "image") folderType = "images";
         if (item.messageType === "video") folderType = "videos";
@@ -60,21 +56,15 @@ export async function downloadAllExpiredFiles(client) {
         const dateDir = new Date(item.timestamp).toISOString().split("T")[0];
         const typeDir = path.join(baseDir, folderType, dateDir);
         if (!fs.existsSync(typeDir)) fs.mkdirSync(typeDir, { recursive: true });
-        // ✅ สร้าง Drive subfolder (ถ้ายังไม่มี)
-        const driveFolderId = await ensureDriveFolders(folderType, dateDir);
 
-        // สร้างชื่อไฟล์
+        const driveFolderId = driveFolders[folderType]; // ใช้ folderId ที่สร้างไว้
+
         const fileName = `${Date.now()}_${item.messageId}.${getFileExtension(folderType)}`;
         const filePath = path.join(typeDir, fileName);
 
-        if (fs.existsSync(filePath)) {
-          console.log(`⏩ ข้ามไฟล์ที่มีอยู่แล้ว: ${fileName}`);
-          continue;
-        }
+        if (fs.existsSync(filePath)) continue;
 
-        console.log(`⬇️ ดาวน์โหลด ${item.messageType} (${item.messageId})...`);
         const stream = await client.getMessageContent(item.messageId);
-
         const writable = fs.createWriteStream(filePath);
         await new Promise((resolve, reject) => {
           stream.pipe(writable);
@@ -83,24 +73,16 @@ export async function downloadAllExpiredFiles(client) {
         });
 
         item.filePath = filePath;
-        console.log(`✅ บันทึกไฟล์สำเร็จ: ${filePath}`);
-
-        // ถ้าต้องการอัปโหลดไป Drive ใช้ driveFolderId
-        // await uploadFileToDrive(filePath, fileName, driveFolderId);
-
         saveChatLog(item);
       }
     }
 
-    // เขียน log กลับไฟล์เดิม
     fs.writeFileSync(logFile, logData.map(d => JSON.stringify(d)).join("\n"));
-
-    console.log("🎯 downloadAll: ดาวน์โหลดไฟล์ทั้งหมดเสร็จสิ้น!");
-
   } catch (error) {
     console.error("❌ downloadAllExpiredFiles.Error:", error);
   }
 }
+
 // 🔹 สร้างโฟลเดอร์โลคอลสี่อัน
 export function ensureLocalFolders() {
   const baseDir = path.join(__dirname, "downloads");
