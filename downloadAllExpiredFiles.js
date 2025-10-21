@@ -71,7 +71,7 @@ export async function downloadAllExpiredFiles(client) {
 
           // 🔸 อัปเดต log
           item.filePath = filePath;
-          console.log(`✅downloadAll: บันทึกไฟล์สำเร็จ: ${filePath}`);
+          console.log(`✅แ บันทึกไฟล์สำเร็จ: ${filePath}`);
 
           // 🔸 ตรวจสอบประเภทข้อความก่อน saveChatLog
           const shouldSaveLog =
@@ -84,6 +84,9 @@ export async function downloadAllExpiredFiles(client) {
           if (shouldSaveLog) {
             saveChatLog(item);
           }
+          console.log("🔹downloadAll:Folder:", logDir);
+          console.log("🔹downloadAll:File path:", filePath);
+          console.log("🔹downloadAll:File exists?", fs.existsSync(filePath));
         }
       }
 
