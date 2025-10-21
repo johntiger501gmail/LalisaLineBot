@@ -10,13 +10,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // สร้าง Google Auth จาก environment variables
+const privateKey = process.env.GOOGLE_PRIVATE_KEY
+  ?.replace(/\\n/g, '\n')     // กรณีมี \n
+  ?.replace(/\\\\n/g, '\n');  // กรณีมี \\n
+
 const auth = new google.auth.GoogleAuth({
   credentials: {
     client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    private_key: privateKey,
   },
   scopes: ["https://www.googleapis.com/auth/drive"],
 });
+
 
 async function ensureLogSetup() {
   const client = await auth.getClient();
