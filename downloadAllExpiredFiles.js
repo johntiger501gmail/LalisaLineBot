@@ -1,7 +1,9 @@
 import fs from "fs";
 import path from "path";
-import { google } from "googleapis";
 import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+import { google } from "googleapis";
+dotenv.config();
 
 // แปลง URL ของโมดูลเป็น path
 const __filename = fileURLToPath(import.meta.url);
@@ -11,7 +13,7 @@ const __dirname = path.dirname(__filename);
 const auth = new google.auth.GoogleAuth({
   credentials: {
     client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
   },
   scopes: ["https://www.googleapis.com/auth/drive"],
 });
