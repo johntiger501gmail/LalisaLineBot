@@ -26,70 +26,35 @@ const auth = new google.auth.GoogleAuth({
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ตัวอย่าง: สร้างอินสแตนซ์ของ Google Drive API
-export const drive = google.drive({
-  version: "v3",
-  auth,
-});
+export function ensureLocalLogSetup() {
+  const baseDir = path.join(__dirname, "downloads");
+  const logDir = path.join(baseDir, "logs");
 
-async function ensureLogSetup() {
+  if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir, { recursive: true });
+  if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
+
+  return { baseDir, logDir };
+}
+
+  // ฟังก์ชันช่วยสร้างไฟล์บน Google Drive
+export async function createDriveFolder(name, parentId = null) {
   const client = await auth.getClient();
   const drive = google.drive({ version: "v3", auth: client });
 
-  // ฟังก์ชันช่วยสร้างโฟลเดอร์บน Google Drive
-  async function createDriveFolder(name, parentId = null) {
-    const fileMetadata = {
-      name,
-      mimeType: "application/vnd.google-apps.folder",
-      parents: parentId ? [parentId] : [],
-    };
-    const res = await drive.files.create({
-      requestBody: fileMetadata,
-      fields: "id, name",
-    });
-    console.log(`✅ สร้างโฟลเดอร์: ${res.data.name} (${res.data.id})`);
-    return res.data.id;
-  }
+  const fileMetadata = {
+    name,
+    mimeType: "application/vnd.google-apps.folder",
+    parents: parentId ? [parentId] : [],
+  };
 
-  // ฟังก์ชันช่วยสร้างไฟล์บน Google Drive
-  async function createDriveFile(name, folderId) {
-    const fileMetadata = {
-      name,
-      parents: [folderId],
-    };
-    const media = {
-      mimeType: "application/json",
-      body: "",
-    };
-    const res = await drive.files.create({
-      requestBody: fileMetadata,
-      media,
-      fields: "id, name",
-    });
-    console.log(`✅ สร้างไฟล์ log: ${res.data.name} (${res.data.id})`);
-    return res.data.id;
-  }
+  const res = await drive.files.create({
+    requestBody: fileMetadata,
+    fields: "id, name",
+  });
 
-  // สร้างโฟลเดอร์หลัก
-  const baseDirId = await createDriveFolder("Google Drive");
-
-  // สร้างโฟลเดอร์ logs และไฟล์ log
-  const logDirId = await createDriveFolder("logs", baseDirId);
-  const logFileId = await createDriveFile("messages.jsonl", logDirId);
-
-  // สร้างโฟลเดอร์ย่อย
-  const folders = ["images", "videos", "files", "audio"];
-  for (const f of folders) {
-    await createDriveFolder(f, baseDirId);
-  }
-
-  console.log("📂 การตรวจสอบโฟลเดอร์และไฟล์ log บน Google Drive เสร็จเรียบร้อย");
-
-  return { baseDirId, logDirId, logFileId };
+  console.log(`✅ สร้างโฟลเดอร์บน Drive: ${res.data.name} (${res.data.id})`);
+  return res.data.id;
 }
-
-// เรียกใช้งาน
-ensureLogSetup().catch(console.error);
 
 /**
  * 🔹 saveChatLog เก็บข้อมูลสำคัญ
@@ -126,7 +91,8 @@ function getFileExtension(type) {
  */
 export async function downloadAllExpiredFiles(client) {
   try {
-    const { baseDir, logDir } = ensureLogSetup();
+    const { baseDir, logDir } = ensureLocalLogSetup(); // ✅ ตอนนี้แน่นอนว่าไม่ undefined
+    console.log("🧩 DEBUG ensureLogSetup():", { baseDir, logDir });
 
     // อ่านไฟล์ log messages.jsonl
     const logFile = path.join(logDir, "messages.jsonl");
