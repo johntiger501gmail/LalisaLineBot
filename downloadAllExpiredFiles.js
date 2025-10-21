@@ -16,16 +16,24 @@ export async function downloadAllExpiredFiles(client) {
     if (!fs.existsSync(logDir)) {
       console.log("🧩downloadAll: ไม่มี log สำหรับดาวน์โหลด — กำลังสร้างโฟลเดอร์ใหม่...");
       fs.mkdirSync(logDir, { recursive: true });
-      return;
+
+      // 🔹 สร้างไฟล์ log เปล่า messages.jsonl ไว้เลย
+      const filePath = path.join(logDir, "messages.jsonl");
+      if (!fs.existsSync(filePath)) {
+        fs.writeFileSync(filePath, ""); // สร้างไฟล์เปล่า
+        console.log("🧩downloadAll: สร้างไฟล์ log messages.jsonl ใหม่เรียบร้อย");
+      }
+      // ❌ ไม่ return ให้ทำงานต่อ
     }
 
     // 🔸 อ่านไฟล์ log ทั้งหมด
-    const logFiles = fs.readdirSync(logDir).filter(f => f.endsWith("_messages.json"));
+    const logFiles = fs.readdirSync(logDir).filter(f => f.endsWith(".jsonl"));
     console.log(`🧩downloadAll: พบ log ทั้งหมด ${logFiles.length} ไฟล์`);
 
     for (const logFile of logFiles) {
       const logPath = path.join(logDir, logFile);
-      const logData = JSON.parse(fs.readFileSync(logPath));
+      const lines = fs.readFileSync(logPath, "utf-8").split("\n").filter(l => l.trim() !== "");
+      const logData = lines.map(l => JSON.parse(l));
 
       for (const item of logData) {
         if (!item.filePath && item.messageType && item.messageId) {
