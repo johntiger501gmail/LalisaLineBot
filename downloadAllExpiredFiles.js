@@ -31,7 +31,7 @@ const __dirname = path.dirname(__filename);
  */
 export async function downloadAllExpiredFiles(client) {
   try {
-    const { baseDir, logDir } = ensureLocalLogSetup(); // ✅ ตอนนี้แน่นอนว่าไม่ undefined
+    const { baseDir, logDir } = ensureLocalFolders(); // ✅ ตอนนี้แน่นอนว่าไม่ undefined
     console.log("🧩 DEBUG ensureLogSetup():", { baseDir, logDir });
 
     // อ่านไฟล์ log messages.jsonl
@@ -61,7 +61,7 @@ export async function downloadAllExpiredFiles(client) {
         const typeDir = path.join(baseDir, folderType, dateDir);
         if (!fs.existsSync(typeDir)) fs.mkdirSync(typeDir, { recursive: true });
         // ✅ สร้าง Drive subfolder (ถ้ายังไม่มี)
-        const driveFolderId = await ensureDriveSubfolder(folderType, dateDir);
+        const driveFolderId = await ensureDriveFolders(folderType, dateDir);
 
         // สร้างชื่อไฟล์
         const fileName = `${Date.now()}_${item.messageId}.${getFileExtension(folderType)}`;
