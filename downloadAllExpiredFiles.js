@@ -1,52 +1,73 @@
 import fs from "fs";
 import path from "path";
-import os from "os";
+import { google } from "googleapis";
 
-function ensureLogSetup() {
-  const baseDir = "D:\\LalisaHistory";
-  const logDir = "D:\\LalisaHistory\\logs";
-  const logFile = "D:\\LalisaHistory\\logs\\messages.jsonl";
+// Path ของไฟล์ JSON
+const keyPath = path.join(__dirname, "config", "lalisahistory-ebb204bd9a41.json");
 
-  // ฟังก์ชันช่วยสร้างโฟลเดอร์
-  function createDir(dirPath) {
-    if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true });
-      console.log(`✅ สร้างโฟลเดอร์: ${dirPath}`);
-    } else {
-      console.log(`ℹ️ โฟลเดอร์มีอยู่แล้ว: ${dirPath}`);
-    }
+const auth = new google.auth.GoogleAuth({
+  keyFile: keyPath,
+  scopes: ["https://www.googleapis.com/auth/drive"],
+});
+
+async function ensureLogSetup() {
+  const client = await auth.getClient();
+  const drive = google.drive({ version: "v3", auth: client });
+
+  // ฟังก์ชันช่วยสร้างโฟลเดอร์บน Google Drive
+  async function createDriveFolder(name, parentId = null) {
+    const fileMetadata = {
+      name,
+      mimeType: "application/vnd.google-apps.folder",
+      parents: parentId ? [parentId] : [],
+    };
+    const res = await drive.files.create({
+      requestBody: fileMetadata,
+      fields: "id, name",
+    });
+    console.log(`✅ สร้างโฟลเดอร์: ${res.data.name} (${res.data.id})`);
+    return res.data.id;
   }
 
-  // ฟังก์ชันช่วยสร้างไฟล์ log
-  function createLogFile(filePath) {
-    if (!fs.existsSync(filePath)) {
-      fs.writeFileSync(filePath, "");
-      console.log(`✅ สร้างไฟล์ log: ${filePath}`);
-    } else {
-      console.log(`ℹ️ ไฟล์ logมีอยู่แล้ว: ${filePath}`);
-    }
+  // ฟังก์ชันช่วยสร้างไฟล์บน Google Drive
+  async function createDriveFile(name, folderId) {
+    const fileMetadata = {
+      name,
+      parents: [folderId],
+    };
+    const media = {
+      mimeType: "application/json",
+      body: "",
+    };
+    const res = await drive.files.create({
+      requestBody: fileMetadata,
+      media,
+      fields: "id, name",
+    });
+    console.log(`✅ สร้างไฟล์ log: ${res.data.name} (${res.data.id})`);
+    return res.data.id;
   }
 
-  // สร้างโฟลเดอร์หลักและ logs
-  [baseDir, logDir].forEach(createDir);
+  // สร้างโฟลเดอร์หลัก
+  const baseDirId = await createDriveFolder("Google Drive");
 
-  // สร้างไฟล์ log ถ้ายังไม่มี
-  createLogFile(logFile);
+  // สร้างโฟลเดอร์ logs และไฟล์ log
+  const logDirId = await createDriveFolder("logs", baseDirId);
+  const logFileId = await createDriveFile("messages.jsonl", logDirId);
 
-  // สร้างโฟลเดอร์ย่อยสำหรับเก็บไฟล์ดาวน์โหลดล่วงหน้า
+  // สร้างโฟลเดอร์ย่อย
   const folders = ["images", "videos", "files", "audio"];
-  folders.forEach((f) => createDir(path.join(baseDir, f)));
+  for (const f of folders) {
+    await createDriveFolder(f, baseDirId);
+  }
 
-  console.log(`📂 การตรวจสอบโฟลเดอร์และไฟล์ log เสร็จเรียบร้อย: ${baseDir}`);
+  console.log("📂 การตรวจสอบโฟลเดอร์และไฟล์ log บน Google Drive เสร็จเรียบร้อย");
 
-  return { baseDir, logDir, logFile };
+  return { baseDirId, logDirId, logFileId };
 }
 
-export { ensureLogSetup };
-
-
-export default ensureLogSetup;
-
+// เรียกใช้งาน
+ensureLogSetup().catch(console.error);
 
 /**
  * 🔹 saveChatLog เก็บข้อมูลสำคัญ
