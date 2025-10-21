@@ -2,9 +2,11 @@ import fs from "fs";
 import path from "path";
 
 function ensureLogSetup() {
-  const baseDir = path.join(process.cwd(), "chat_history");
+  // ใช้โฟลเดอร์ปัจจุบันของเครื่องเป็นฐาน
+  const baseDir = path.resolve(process.cwd(), "chat_history");
   const logDir = path.join(baseDir, "logs");
   const logFile = path.join(logDir, "messages.jsonl");
+
 
   // ฟังก์ชันช่วยสร้างโฟลเดอร์
   function createDir(dirPath) {
