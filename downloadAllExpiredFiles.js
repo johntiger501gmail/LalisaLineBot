@@ -32,7 +32,7 @@ const __dirname = path.dirname(__filename);
 export async function downloadAllExpiredFiles(client) {
   try {
     const { baseDir, logDir } = ensureLocalFolders(); // ✅ ตอนนี้แน่นอนว่าไม่ undefined
-    console.log("🧩 DEBUG ensureLogSetup():", { baseDir, logDir });
+    console.log("🧩 DEBUG ensureLocalFolders():", { baseDir, logDir });
 
     // อ่านไฟล์ log messages.jsonl
     const logFile = path.join(logDir, "messages.jsonl");
