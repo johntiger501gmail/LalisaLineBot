@@ -14,7 +14,8 @@ export async function downloadAllExpiredFiles(client) {
     const logDir = path.join(baseDir, "logs");
 
     if (!fs.existsSync(logDir)) {
-      console.log("🧩 ไม่มี log สำหรับดาวน์โหลด");
+      console.log("🧩 ไม่มี log สำหรับดาวน์โหลด — กำลังสร้างโฟลเดอร์ใหม่...");
+      fs.mkdirSync(logDir, { recursive: true });
       return;
     }
 
