@@ -3,8 +3,10 @@ import path from "path";
 
 /**
  * 🔹 ตรวจสอบและสร้างโฟลเดอร์/ไฟล์ log หากยังไม่มี
+ * - ปรับให้ใช้โฟลเดอร์จริงบนคอม Windows: D:\LalisaLineBot\chat_history
  */
 function ensureLogSetup() {
+  // ใช้โฟลเดอร์โปรเจคจริงบน Windows
   const baseDir = path.join(process.cwd(), "chat_history");
   const logDir = path.join(baseDir, "logs");
   const logFile = path.join(logDir, "messages.jsonl");
@@ -29,6 +31,9 @@ function ensureLogSetup() {
 
   return { baseDir, logDir, logFile };
 }
+
+export default ensureLogSetup;
+
 
 /**
  * 🔹 ดาวน์โหลดไฟล์จาก log และอัปเดต log
