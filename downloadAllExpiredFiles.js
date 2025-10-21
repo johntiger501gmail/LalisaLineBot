@@ -5,23 +5,26 @@ import dotenv from "dotenv";
 import { google } from "googleapis";
 dotenv.config();
 
-// แปลง URL ของโมดูลเป็น path
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 // อ่านค่าโปรเจกต์จาก .env
 const projectId = process.env.GOOGLE_PROJECT_ID;
+
+const privateKey = Buffer.from(
+  process.env.GOOGLE_PRIVATE_KEY_BASE64,
+  "base64"
+).toString("utf8");
 
 // สร้างออบเจ็กต์ auth โดยใช้ credentials จาก environment
 const auth = new google.auth.GoogleAuth({
   credentials: {
     client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    // แปลง newline ใน private key ให้อยู่ในรูปแบบถูกต้อง
-    private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    private_key: privateKey,
   },
-  projectId: projectId,
   scopes: ["https://www.googleapis.com/auth/drive"],
 });
+
+// แปลง URL ของโมดูลเป็น path
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // ตัวอย่าง: สร้างอินสแตนซ์ของ Google Drive API
 export const drive = google.drive({
