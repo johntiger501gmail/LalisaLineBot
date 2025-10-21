@@ -1,39 +1,32 @@
 import fs from "fs";
 import path from "path";
 
-/**
- * 🔹 ตรวจสอบและสร้างโฟลเดอร์/ไฟล์ log หากยังไม่มี
- * - ปรับให้ใช้โฟลเดอร์จริงบนคอม Windows: D:\LalisaLineBot\chat_history
- */
 function ensureLogSetup() {
-  // ใช้โฟลเดอร์โปรเจคจริงบน Windows
   const baseDir = path.join(process.cwd(), "chat_history");
   const logDir = path.join(baseDir, "logs");
   const logFile = path.join(logDir, "messages.jsonl");
 
-  // ตรวจสอบโฟลเดอร์ chat_history
-  if (!fs.existsSync(baseDir)) {
-    console.log("🧩 สร้างโฟลเดอร์ chat_history...");
-    fs.mkdirSync(baseDir, { recursive: true });
-  }
+  // สร้างโฟลเดอร์หลักและ logs
+  [baseDir, logDir].forEach(dir => {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  });
 
-  // ตรวจสอบโฟลเดอร์ logs
-  if (!fs.existsSync(logDir)) {
-    console.log("🧩 สร้างโฟลเดอร์ logs...");
-    fs.mkdirSync(logDir, { recursive: true });
-  }
+  // สร้างไฟล์ log ถ้ายังไม่มี
+  if (!fs.existsSync(logFile)) fs.writeFileSync(logFile, "");
 
-  // ตรวจสอบไฟล์ messages.jsonl
-  if (!fs.existsSync(logFile)) {
-    console.log("🧩 สร้างไฟล์ log messages.jsonl ใหม่...");
-    fs.writeFileSync(logFile, "");
-  }
+  // สร้างโฟลเดอร์สำหรับเก็บไฟล์ดาวน์โหลดล่วงหน้า
+  const folders = ["images", "videos", "files", "audio"];
+  folders.forEach(f => {
+    const folderPath = path.join(baseDir, f);
+    if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
+  });
+
+  console.log("✅ ตรวจสอบโฟลเดอร์และไฟล์ log เสร็จเรียบร้อย");
 
   return { baseDir, logDir, logFile };
 }
 
 export default ensureLogSetup;
-
 
 /**
  * 🔹 ดาวน์โหลดไฟล์จาก log และอัปเดต log
