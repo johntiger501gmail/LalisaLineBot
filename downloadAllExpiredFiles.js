@@ -1,11 +1,19 @@
 import fs from "fs";
 import path from "path";
-import { google } from "googleapis";
+import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import { google } from "googleapis";
 dotenv.config();
 
-// Google Auth Setup
-const privateKey = Buffer.from(process.env.GOOGLE_PRIVATE_KEY_BASE64, "base64").toString("utf8").replace(/\\n/g, "\n");
+// อ่านค่าโปรเจกต์จาก .env
+const projectId = process.env.GOOGLE_PROJECT_ID;
+
+const privateKey = Buffer.from(
+  process.env.GOOGLE_PRIVATE_KEY_BASE64,
+  "base64"
+).toString("utf8");
+
+// สร้างออบเจ็กต์ auth โดยใช้ credentials จาก environment
 const auth = new google.auth.GoogleAuth({
   credentials: {
     client_email: process.env.GOOGLE_CLIENT_EMAIL,
