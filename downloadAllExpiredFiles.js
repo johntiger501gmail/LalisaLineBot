@@ -25,17 +25,14 @@ const auth = new google.auth.GoogleAuth({
 // แปลง URL ของโมดูลเป็น path
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
+const driveClient = await auth.getClient();
+const drive = google.drive({ version: "v3", auth: driveClient });
 /**
  * 🔹 ดาวน์โหลดไฟล์จาก log และอัปเดต log
  */
 // 🔹 ฟังก์ชันหลัก
 export async function downloadAllExpiredFiles(client) {
   try {
-    const driveClient = await auth.getClient();
-    const drive = google.drive({ version: "v3", auth: driveClient });
-
-
     // 1️⃣ เตรียมโฟลเดอร์บน Drive
     const folderIds = await ensureDriveFolders(drive);
 
