@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Google Auth Setup
-const privateKey = Buffer.from(process.env.GOOGLE_PRIVATE_KEY_BASE64, "base64").toString("utf8");
+const privateKey = Buffer.from(process.env.GOOGLE_PRIVATE_KEY_BASE64, "base64").toString("utf8").replace(/\\n/g, "\n");
 const auth = new google.auth.GoogleAuth({
   credentials: {
     client_email: process.env.GOOGLE_CLIENT_EMAIL,
