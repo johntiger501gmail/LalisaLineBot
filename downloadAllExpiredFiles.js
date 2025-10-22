@@ -8,11 +8,11 @@ dotenv.config();
 // อ่านค่าโปรเจกต์จาก .env
 const projectId = process.env.GOOGLE_PROJECT_ID;
 const privateKey = Buffer.from(
-  process.env.GOOGLE_PRIVATE_KEY_BASE64,
+  process.env.GOOGLE_PRIVATE_KEY_BASE64.replace(/\s+/g, ""), // ลบ whitespace หรือ newline
   "base64"
 )
   .toString("utf8")
-  .replace(/\\n/g, "\n"); // แก้ \n ให้เป็น newline จริง
+  .replace(/\\n/g, "\n"); // แปลง newline escape เป็น newline จริง
 
 // สร้างออบเจ็กต์ auth โดยใช้ credentials จาก environment
 const auth = new google.auth.GoogleAuth({
