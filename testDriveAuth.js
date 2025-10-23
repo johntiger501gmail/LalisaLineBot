@@ -4,7 +4,8 @@ dotenv.config();
 
 export async function testDriveAuth() {
     try {
-        const privateKey = process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');
+        // แปลง \n ที่อยู่ใน ENV ให้เป็น new line จริง
+        const privateKey = process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n");
 
         const auth = new google.auth.GoogleAuth({
             credentials: {
