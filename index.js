@@ -2,59 +2,33 @@ import express from "express";
 import path from 'path';
 import dotenv from "dotenv";
 import bodyParser from "body-parser";
+import fs from 'fs/promises';
 import * as line from "@line/bot-sdk";
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { processMessdataFile } from "./opendbf.js"; // นำเข้า opendbf.js
+import { processMessdataFile } from "./opendbf.js";
 import { handleEventTypes } from "./handleEvent.js";
-import fs from 'fs/promises';
 import { google } from "googleapis";
 
-//import net from "net";  // เพิ่มการใช้งาน net module
 dotenv.config();
+
 const SCOPES = ['https://www.googleapis.com/auth/drive'];
 const CREDENTIALS_PATH = 'lalisahistory-ebb204bd9a41.json';
-const TOKEN_PATH = 'token.json';
 
-// โหลด credentials
-const credentials = JSON.parse(await fs.readFile(CREDENTIALS_PATH, 'utf8'));
-const { client_secret, client_id, redirect_uris } = credentials.installed;
-const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
-// โหลด token จากไฟล์ (ต้องสร้างบนเครื่อง local ก่อน)
-const token = JSON.parse(await fs.readFile(TOKEN_PATH, 'utf8'));
-oAuth2Client.setCredentials(token);
-
-// สร้าง URL สำหรับยืนยันตัวตน
-const authUrl = oAuth2Client.generateAuthUrl({ access_type: 'offline', scope: SCOPES });
-console.log('Authorize this app by visiting this URL:', authUrl);
-
-// รับ code จาก URL
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-rl.question('Enter the code from that page here: ', async (code) => {
-    rl.close();
-    const { tokens } = await oAuth2Client.getToken(code);
-    oAuth2Client.setCredentials(tokens);
-    await fs.writeFile(TOKEN_PATH, JSON.stringify(tokens));
-    console.log('Token stored to', TOKEN_PATH);
-});
-//เพิ่ม /images
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const app = express();
 const imagesDir = path.join(__dirname, 'images');
 app.use('/images', express.static(imagesDir));
-//สิ้นสุด /images
-const port = 80; // ใช้พอร์ต 80 สำหรับการเรียกใช้โดยไม่ต้องระบุพอร์ตใน URL
-
 app.use(bodyParser.json());
 
+const port = 80;
 const config = {
-  channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
-  channelSecret: process.env.CHANNEL_SECRET
+    channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
+    channelSecret: process.env.CHANNEL_SECRET
 };
 const client = new line.Client(config);
 
-// Bot-specific configurations
 const botName = "ซาลาเปา";
 const botUserId = process.env.BOT_USER_ID;
 
@@ -84,7 +58,32 @@ global.appData = {
     groupId: {}
   }
 };
+let drive; // global สำหรับโมดูลนี้
 
+async function main() {
+    const credentials = JSON.parse(await fs.readFile(CREDENTIALS_PATH, 'utf8'));
+    const auth = new google.auth.GoogleAuth({
+        credentials: {
+            client_email: credentials.client_email,
+            private_key: credentials.private_key.replace(/\\n/g, '\n'),
+        },
+        scopes: SCOPES,
+    });
+    drive = google.drive({ version: 'v3', auth });
+
+    try {
+        const res = await drive.files.list({ pageSize: 5 });
+        console.log('Drive files:', res.data.files);
+    } catch (err) {
+        console.error('Drive auth error:', err);
+    }
+
+    app.listen(port, () => {
+        console.log(`ซาลาเปา:Server is running on port ${port}`);
+    });
+}
+
+main();
 // Webhook (POST)
 // Webhook route (POST) สำหรับการจัดการ LINE Bot Events
 app.post("/webhook", async (req, res) => {
@@ -177,8 +176,3 @@ app.get("/webhook", async (req, res) => {
       res.status(500).send("Error processing summary.dbf: " + error.message);
     }
   });  
-
-// เริ่มต้นเซิร์ฟเวอร์
-app.listen(port, () => {
-    console.log(`ซาลาเปา:Server is running on port ${port}`);
-});
