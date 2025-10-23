@@ -21,9 +21,13 @@ app.use('/images', express.static(imagesDir));
 app.use(bodyParser.json());
 
 const credentials = JSON.parse(await fs.readFile('lalisahistory-ebb204bd9a41.json', 'utf8'));
-const { client_email, private_key, redirect_uris } = credentials.installed;
-const SCOPES = ['https://www.googleapis.com/auth/drive'];
-const oAuth2Client = new google.auth.OAuth2(client_email, private_key, redirect_uris[0]);
+const auth = new google.auth.GoogleAuth({
+    credentials: {
+        client_email: credentials.client_email,
+        private_key: credentials.private_key.replace(/\\n/g, '\n'),
+    },
+    scopes: ["https://www.googleapis.com/auth/drive"],
+});
 
 const port = 80;
 const config = {
@@ -63,7 +67,7 @@ global.appData = {
 // ------------------- Google Drive -------------------
 async function initDrive() {
     try {
-        const drive = google.drive({ version: 'v3', auth: oAuth2Client });
+        const drive = google.drive({ version: 'v3', auth });
         
         // ทดสอบเชื่อมต่อ
         const res = await drive.files.list({ pageSize: 5 });
