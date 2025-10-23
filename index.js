@@ -12,16 +12,16 @@ import { google } from "googleapis";
 
 dotenv.config();
 const app = express();
-const imagesDir = path.join(__dirname, 'images');
-app.use('/images', express.static(imagesDir));
-app.use(bodyParser.json());
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const imagesDir = path.join(__dirname, 'images');
+
+app.use('/images', express.static(imagesDir));
+app.use(bodyParser.json());
 
 const SCOPES = ['https://www.googleapis.com/auth/drive'];
 const SERVICE_ACCOUNT_PATH = path.join(__dirname, 'lalisahistory-ebb204bd9a41.json');
-
 
 const port = 80;
 const config = {
