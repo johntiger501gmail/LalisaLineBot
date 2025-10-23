@@ -62,20 +62,19 @@ global.appData = {
 
 // ฟังก์ชันทดสอบเชื่อมต่อ Google Drive
 const projectId = process.env.GOOGLE_PROJECT_ID;
-
+const auth = new google.auth.GoogleAuth({
+    credentials: {
+        client_email: process.env.GOOGLE_CLIENT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    },
+    projectId: projectId,
+    scopes: ["https://www.googleapis.com/auth/drive"],
+});
 export async function testDriveAuth() {
     try {
         if (!process.env.GOOGLE_PRIVATE_KEY || !process.env.GOOGLE_CLIENT_EMAIL || !process.env.GOOGLE_PROJECT_ID) {
             throw new Error("Missing Google Drive credentials in environment variables.");
         }
-
-        const auth = new google.auth.GoogleAuth({
-            credentials: {
-                client_email: process.env.GOOGLE_CLIENT_EMAIL,
-                private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-            },
-            scopes: ["https://www.googleapis.com/auth/drive"],
-        });
 
         const client = await auth.getClient();
         const drive = google.drive({ version: "v3", auth: client });
