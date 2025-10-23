@@ -21,14 +21,12 @@ const app = express();
 const imagesDir = path.join(__dirname, 'images');
 app.use('/images', express.static(imagesDir));
 app.use(bodyParser.json());
-
 const port = 80;
 const config = {
     channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
     channelSecret: process.env.CHANNEL_SECRET
 };
 const client = new line.Client(config);
-
 const botName = "ซาลาเปา";
 const botUserId = process.env.BOT_USER_ID;
 
@@ -58,32 +56,33 @@ global.appData = {
     groupId: {}
   }
 };
-let drive; // global สำหรับโมดูลนี้
-
-async function main() {
-    const credentials = JSON.parse(await fs.readFile(CREDENTIALS_PATH, 'utf8'));
-    const auth = new google.auth.GoogleAuth({
-        credentials: {
-            client_email: credentials.client_email,
-            private_key: credentials.private_key.replace(/\\n/g, '\n'),
-        },
-        scopes: SCOPES,
-    });
-    drive = google.drive({ version: 'v3', auth });
-
+// ------------------- Google Drive -------------------
+async function initDrive() {
     try {
+        const credentials = JSON.parse(await fs.readFile(SERVICE_ACCOUNT_PATH, 'utf8'));
+        const auth = new google.auth.GoogleAuth({
+            credentials: {
+                client_email: credentials.client_email,
+                private_key: credentials.private_key.replace(/\\n/g, '\n'),
+            },
+            scopes: SCOPES,
+        });
+        const drive = google.drive({ version: 'v3', auth });
+
+        // ทดสอบเชื่อมต่อ
         const res = await drive.files.list({ pageSize: 5 });
         console.log('Drive files:', res.data.files);
+
+        return drive; // ส่ง drive object กลับเพื่อใช้ใน opendbf.js
     } catch (err) {
         console.error('Drive auth error:', err);
+        return null;
     }
-
-    app.listen(port, () => {
-        console.log(`ซาลาเปา:Server is running on port ${port}`);
-    });
 }
+// สร้าง drive instance ทันที
+const drive = await initDrive();
 
-main();
+// ------------------- Webhook POST -------------------
 // Webhook (POST)
 // Webhook route (POST) สำหรับการจัดการ LINE Bot Events
 app.post("/webhook", async (req, res) => {
@@ -176,3 +175,7 @@ app.get("/webhook", async (req, res) => {
       res.status(500).send("Error processing summary.dbf: " + error.message);
     }
   });  
+// ------------------- Start server -------------------
+app.listen(port, () => {
+    console.log(`ซาลาเปา:Server is running on port ${port}`);
+});
