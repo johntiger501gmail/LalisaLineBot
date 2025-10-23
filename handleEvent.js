@@ -5,7 +5,7 @@ import { handleAudioMessage } from "./handleaudio.js";
 import { handleVideoMessage } from "./handlevideos.js";
 import { handleStickerMessage } from './handlesticker.js';
 import { handleImageMessage } from './handleimage.js';
-import { testDriveAuth } from "./testDriveAuth.js";
+import { downloadAllExpiredFiles } from "./downloadAllExpiredFiles.js";
 import { sendFallbackMenu } from './ansmenu.js'
 import { downloadAndSaveImage } from './imageload.js'; 
 import { getGoogleSearchResults } from "./googles.js";
@@ -51,8 +51,7 @@ export async function handleEventTypes(event, replyToken, userId, client, botUse
     allowedUsers.includes(metadata.userId)
   ) {
     console.log("🧩sw.event.Trigger download ALL images:", metadata.userName);
-      //await downloadAllExpiredFiles(client);
-      await testDriveAuth(client);
+      await downloadAllExpiredFiles(client);
   }
 
   // เมื่อรับ event ภาพ
