@@ -11,6 +11,16 @@ import { google } from "googleapis";
 
 //import net from "net";  // เพิ่มการใช้งาน net module
 dotenv.config();
+
+const projectId = process.env.GOOGLE_PROJECT_ID;
+const auth = google.auth.GoogleAuth({
+    credentials: {
+        client_email: process.env.GOOGLE_CLIENT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    },
+    projectId: projectId,
+});
+
 //เพิ่ม /images
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
