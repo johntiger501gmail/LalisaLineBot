@@ -11,10 +11,6 @@ const __dirname = path.dirname(__filename);
 // --------------------------------------------------------------
 export async function downloadAllExpiredFiles(client) {
     try {
-        // 1️⃣ เชื่อมต่อ Google Drive API
-        const driveClient = await auth.getClient();
-        const drive = google.drive({ version: "v3", auth: driveClient });
-
         // 2️⃣ ตรวจสอบและสร้างโฟลเดอร์บน Drive (logs, images, videos, audio)
         const folderIds = await ensureDriveFolders(drive);
 

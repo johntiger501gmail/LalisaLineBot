@@ -21,9 +21,9 @@ app.use('/images', express.static(imagesDir));
 app.use(bodyParser.json());
 
 const credentials = JSON.parse(await fs.readFile('lalisahistory-ebb204bd9a41.json', 'utf8'));
-const { client_id, client_secret, redirect_uris } = credentials.installed;
+const { client_email, private_key, redirect_uris } = credentials.installed;
 const SCOPES = ['https://www.googleapis.com/auth/drive'];
-const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+const oAuth2Client = new google.auth.OAuth2(client_email, private_key, redirect_uris[0]);
 
 const port = 80;
 const config = {
