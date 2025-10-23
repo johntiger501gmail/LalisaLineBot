@@ -1,11 +1,9 @@
-﻿// JavaScript source code
-import { google } from "googleapis";
+﻿import { google } from "googleapis";
 import dotenv from "dotenv";
 dotenv.config();
 
-async function testDriveAuth() {
+export async function testDriveAuth() {
     try {
-        // แปลง \n ใน ENV ให้เป็น newline จริง
         const privateKey = process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');
 
         const auth = new google.auth.GoogleAuth({
@@ -19,12 +17,9 @@ async function testDriveAuth() {
         const client = await auth.getClient();
         const drive = google.drive({ version: "v3", auth: client });
 
-        // ทดสอบเรียก Drive API ง่าย ๆ
         const res = await drive.files.list({ pageSize: 1 });
         console.log("✅ Drive API เชื่อมต่อสำเร็จ:", res.data.files);
     } catch (error) {
         console.error("❌ Drive auth error:", error);
     }
 }
-
-testDriveAuth();
