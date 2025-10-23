@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "lalisahistory",
+  "private_key_id": "ebb204bd9a41d137a2ef05b842d7068740251da4",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCl2VADDsoKaUo2\nrDWQOm1LeJ9plFNPPAjWdh2N5mhHMJuhnVRU8DLyhKKc/89nBSB0vFI2so7mvnPj\nc3UUB5lJPpnbWoqZkLAFcClhYdQ/rxCfRH2BobTqt6qh9b0z3LO9xB18IjQiH/5+\n7kSvBuST08N3xOZYvBA6e6sRYqyVfmR5pyrKj//xw5EEoI+gLXl7s7nof99ATcuY\ne6r2++9b1X/kddJfrATo+ENMlwwGoBuikkIEplDENxsAyVyaWa6tz08eiZnVtxpz\nUr2ACZf7R7sYIMZeMkSimTTDzDEpq2andwAdv4oQhw1pm/oUbbu5dz4aLaf5R/PH\nx/INKcS3AgMBAAECggEAAbSIy+dAhjfhQUum/KslHt6yy5FGBAK1go2nWHiof3w3\n9W2ahYm3Xw1PELcunjwMF+HXJI8pxKSWU3Mx886aMbRuPOD4Ri5EfmHSAxl65wa5\nRdyclRMhED1q3eHFcWg7rt/6f6FoZiYXEJ4JixUn5NSLZiAE+vTquSHhYeXg/rkl\njLw67UiIxitr2vmuxLnMbSyrEUt0aku0jXljgCSEZkdlARhTguw/6j2/zDqyse4R\nCiQAnMAvcV2uHFwLLYfjzaaPlva/UFmdtZXnGHe//zB5NOJXQ9dg5HIYYKjCNYzD\n4bEUo9WHuIfGQ/+NU4FD+qsXNXgF8G1Dfimej7qPdQKBgQDbld2aGKMmlozDYSD6\nfU+J+dvHyyKzuSkR6Tqog0Sk51bmI0UO++kykixyHL0k+ZSl1vjMearkPUD6gUwn\njj31Dmiphe3HJhNbnrV2sG0qrZzCkjaQw2OeSVD36GmjL2+OUI8UDg0F9wN7VK1z\nmGv6YevXswmaYZz8z4yt1+4sCwKBgQDBWibF4MvWfifJf7Vf61+urbAW2p3t4uki\n2mWN7r0ZpmeytNgjmo9HKqnc+PR2S0BoGlpMCTDrJXde2jr2BCrr4gBLe7vSBBIm\n2dPJ/pbeScDbAdAQrwPQBC+MCT1fcnylkuI5V+FJwnOg27JwTQ1petmlYgzpxdBa\niSB16HGJhQKBgQCXw3GAYkzIi77H/mZbmaYSd4TmBkh6rJttDKQE+YzE6DrQHkpJ\ne+QFlq9vQtubJYAOSpB0ShbJXmh9ekWXBSFfMFE38R+Qx4kThpJmcLNSjuFMPN/H\nl7NPH979KD1ykoNoedcZhkiL+dgHMlQbE5p1V5432z7k21g0BoJ1WEr9VwKBgQCH\nauh09nhNBZZAHd2eDG+7G5KUrxClJ6M48dTmjyqJ6G4AT4CBjyKCKXNGfGZa42F8\nh9huIJHOXzM3j4hz/X9CLcsfEs38zTUZWL5oXpKzpNwZhy9+P9Vfv069uUruqnR6\nUmF24AG9cx8grj5PQOf/1DbTCdUZdZ3zis7dRasfMQKBgD8o0uqlrGrAauwlbtn8\nk/FXyZ0VVPl5IxBM0fFmj4dE6ONz75FdQZww8hRuPORnjnrHWMQ4dmF51LBaxlw1\nyWO2+gChsukJ0rHXEs4Ix8R1c0EHaf6ZrlZbZr7n26q1rSOPtm0abgseFnrOY6LR\nT23DFe0QyzBI23Nk+QSwYfUn\n-----END PRIVATE KEY-----\n",
+  "client_email": "lalisalinebot@lalisahistory.iam.gserviceaccount.com",
+  "client_id": "117589713318363723515",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/lalisalinebot%40lalisahistory.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

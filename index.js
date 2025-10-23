@@ -7,11 +7,36 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { processMessdataFile } from "./opendbf.js"; // นำเข้า opendbf.js
 import { handleEventTypes } from "./handleEvent.js";
+import fs from 'fs/promises';
 import { google } from "googleapis";
 
 //import net from "net";  // เพิ่มการใช้งาน net module
 dotenv.config();
+const SCOPES = ['https://www.googleapis.com/auth/drive'];
+const CREDENTIALS_PATH = 'lalisahistory-ebb204bd9a41.json';
+const TOKEN_PATH = 'token.json';
 
+// โหลด credentials
+const credentials = JSON.parse(await fs.readFile(CREDENTIALS_PATH, 'utf8'));
+const { client_secret, client_id, redirect_uris } = credentials.installed;
+const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+// โหลด token จากไฟล์ (ต้องสร้างบนเครื่อง local ก่อน)
+const token = JSON.parse(await fs.readFile(TOKEN_PATH, 'utf8'));
+oAuth2Client.setCredentials(token);
+
+// สร้าง URL สำหรับยืนยันตัวตน
+const authUrl = oAuth2Client.generateAuthUrl({ access_type: 'offline', scope: SCOPES });
+console.log('Authorize this app by visiting this URL:', authUrl);
+
+// รับ code จาก URL
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+rl.question('Enter the code from that page here: ', async (code) => {
+    rl.close();
+    const { tokens } = await oAuth2Client.getToken(code);
+    oAuth2Client.setCredentials(tokens);
+    await fs.writeFile(TOKEN_PATH, JSON.stringify(tokens));
+    console.log('Token stored to', TOKEN_PATH);
+});
 //เพิ่ม /images
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -60,31 +85,6 @@ global.appData = {
   }
 };
 
-// ฟังก์ชันทดสอบเชื่อมต่อ Google Drive
-const projectId = process.env.GOOGLE_PROJECT_ID;
-const auth = new google.auth.GoogleAuth({
-    credentials: {
-        client_email: process.env.GOOGLE_CLIENT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-    },
-    projectId: projectId,
-    scopes: ["https://www.googleapis.com/auth/drive"],
-});
-export async function testDriveAuth() {
-    try {
-        if (!process.env.GOOGLE_PRIVATE_KEY || !process.env.GOOGLE_CLIENT_EMAIL || !process.env.GOOGLE_PROJECT_ID) {
-            throw new Error("Missing Google Drive credentials in environment variables.");
-        }
-
-        const client = await auth.getClient();
-        const drive = google.drive({ version: "v3", auth: client });
-
-        const res = await drive.files.list({ pageSize: 1 });
-        console.log("✅ Drive API เชื่อมต่อสำเร็จ:", res.data.files);
-    } catch (error) {
-        console.error("❌ Drive auth error:", error.message || error);
-    }
-}
 // Webhook (POST)
 // Webhook route (POST) สำหรับการจัดการ LINE Bot Events
 app.post("/webhook", async (req, res) => {
@@ -177,9 +177,6 @@ app.get("/webhook", async (req, res) => {
       res.status(500).send("Error processing summary.dbf: " + error.message);
     }
   });  
-
-// เรียกทดสอบ Drive API ตอนเริ่ม server
-testDriveAuth();
 
 // เริ่มต้นเซิร์ฟเวอร์
 app.listen(port, () => {
