@@ -13,7 +13,7 @@ import { google } from "googleapis";
 dotenv.config();
 
 const SCOPES = ['https://www.googleapis.com/auth/drive'];
-const CREDENTIALS_PATH = 'lalisahistory-ebb204bd9a41.json';
+const SERVICE_ACCOUNT_PATH = path.join(__dirname, 'lalisahistory-ebb204bd9a41.json');
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
