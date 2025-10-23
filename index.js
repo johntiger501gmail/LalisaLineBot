@@ -67,13 +67,13 @@ global.appData = {
 // ------------------- Google Drive -------------------
 async function initDrive() {
     try {
-        const drive = google.drive({ version: 'v3', auth });
-        
+        const driveInstance = google.drive({ version: 'v3', auth });
+
         // ทดสอบเชื่อมต่อ
-        const res = await drive.files.list({ pageSize: 5 });
+        const res = await driveInstance.files.list({ pageSize: 5 });
         console.log('Drive files:', res.data.files);
 
-        return drive; // ส่ง drive object กลับเพื่อใช้ใน opendbf.js
+        return driveInstance; // ส่งกลับ drive instance
     } catch (err) {
         console.error('Drive auth error:', err);
         return null;
