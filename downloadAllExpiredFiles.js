@@ -5,13 +5,17 @@ import dotenv from "dotenv";
 import { google } from "googleapis";
 
 dotenv.config();
+// 🧩 ตั้งค่าข้อมูลจาก .env (รองรับ \n ใน key)
+let privateKey = process.env.GOOGLE_PRIVATE_KEY_BASE64 || "";
+if (privateKey.includes("BEGIN PRIVATE KEY")) {
+    // ✅ กรณีคัดลอกมาเป็น raw text (ไม่ต้อง decode)
+    privateKey = privateKey.replace(/\\n/g, "\n");
+} else {
+    // ✅ กรณีเก็บเป็น Base64
+    privateKey = Buffer.from(privateKey, "base64").toString("utf8").replace(/\\n/g, "\n");
+}
 
-// 🧩 ตั้งค่าข้อมูลจาก .env
-const privateKey = Buffer.from(
-    process.env.GOOGLE_PRIVATE_KEY_BASE64,
-    "base64"
-).toString("utf8");
-
+// ✅ ตั้งค่า Google Auth
 const auth = new google.auth.GoogleAuth({
     credentials: {
         client_email: process.env.GOOGLE_CLIENT_EMAIL,
@@ -19,7 +23,6 @@ const auth = new google.auth.GoogleAuth({
     },
     scopes: ["https://www.googleapis.com/auth/drive"],
 });
-
 // 🔹 path ของไฟล์ปัจจุบัน
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
