@@ -179,6 +179,9 @@ app.get("/webhook", async (req, res) => {
     }
   });  
 
+// เรียกทดสอบ Drive API ตอนเริ่ม server
+testDriveAuth();
+
 // เริ่มต้นเซิร์ฟเวอร์
 app.listen(port, () => {
     console.log(`ซาลาเปา:Server is running on port ${port}`);

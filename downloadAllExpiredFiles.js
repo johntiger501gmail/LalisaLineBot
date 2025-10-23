@@ -1,21 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import dotenv from "dotenv";
-import { google } from "googleapis";
 
-dotenv.config();
-// 🧩 ตั้งค่าข้อมูลจาก .env (รองรับ \n ใน key)
-const privateKey = process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');
-
-// ✅ ตั้งค่า Google Auth
-const auth = new google.auth.GoogleAuth({
-    credentials: {
-        client_email: process.env.GOOGLE_CLIENT_EMAIL,
-        private_key: privateKey,
-    },
-    scopes: ["https://www.googleapis.com/auth/drive"],
-});
 // 🔹 path ของไฟล์ปัจจุบัน
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
