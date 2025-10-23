@@ -6,14 +6,7 @@ import { google } from "googleapis";
 
 dotenv.config();
 // 🧩 ตั้งค่าข้อมูลจาก .env (รองรับ \n ใน key)
-let privateKey = process.env.GOOGLE_PRIVATE_KEY_BASE64 || "";
-if (privateKey.includes("BEGIN PRIVATE KEY")) {
-    // ✅ กรณีคัดลอกมาเป็น raw text (ไม่ต้อง decode)
-    privateKey = privateKey.replace(/\\n/g, "\n");
-} else {
-    // ✅ กรณีเก็บเป็น Base64
-    privateKey = Buffer.from(privateKey, "base64").toString("utf8").replace(/\\n/g, "\n");
-}
+const privateKey = process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n');
 
 // ✅ ตั้งค่า Google Auth
 const auth = new google.auth.GoogleAuth({
