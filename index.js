@@ -12,15 +12,6 @@ import { google } from "googleapis";
 //import net from "net";  // เพิ่มการใช้งาน net module
 dotenv.config();
 
-const projectId = process.env.GOOGLE_PROJECT_ID;
-const auth = google.auth.GoogleAuth({
-    credentials: {
-        client_email: process.env.GOOGLE_CLIENT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-    },
-    projectId: projectId,
-});
-
 //เพิ่ม /images
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -69,6 +60,32 @@ global.appData = {
   }
 };
 
+// ฟังก์ชันทดสอบเชื่อมต่อ Google Drive
+const projectId = process.env.GOOGLE_PROJECT_ID;
+
+export async function testDriveAuth() {
+    try {
+        if (!process.env.GOOGLE_PRIVATE_KEY || !process.env.GOOGLE_CLIENT_EMAIL || !process.env.GOOGLE_PROJECT_ID) {
+            throw new Error("Missing Google Drive credentials in environment variables.");
+        }
+
+        const auth = new google.auth.GoogleAuth({
+            credentials: {
+                client_email: process.env.GOOGLE_CLIENT_EMAIL,
+                private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+            },
+            scopes: ["https://www.googleapis.com/auth/drive"],
+        });
+
+        const client = await auth.getClient();
+        const drive = google.drive({ version: "v3", auth: client });
+
+        const res = await drive.files.list({ pageSize: 1 });
+        console.log("✅ Drive API เชื่อมต่อสำเร็จ:", res.data.files);
+    } catch (error) {
+        console.error("❌ Drive auth error:", error.message || error);
+    }
+}
 // Webhook (POST)
 // Webhook route (POST) สำหรับการจัดการ LINE Bot Events
 app.post("/webhook", async (req, res) => {
@@ -166,27 +183,3 @@ app.get("/webhook", async (req, res) => {
 app.listen(port, () => {
     console.log(`ซาลาเปา:Server is running on port ${port}`);
 });
-// ฟังก์ชันทดสอบเชื่อมต่อ Google Drive
-export async function testDriveAuth() {
-    try {
-        if (!process.env.GOOGLE_PRIVATE_KEY || !process.env.GOOGLE_CLIENT_EMAIL || !process.env.GOOGLE_PROJECT_ID) {
-            throw new Error("Missing Google Drive credentials in environment variables.");
-        }
-
-        const auth = new google.auth.GoogleAuth({
-            credentials: {
-                client_email: process.env.GOOGLE_CLIENT_EMAIL,
-                private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-            },
-            scopes: ["https://www.googleapis.com/auth/drive"],
-        });
-
-        const client = await auth.getClient();
-        const drive = google.drive({ version: "v3", auth: client });
-
-        const res = await drive.files.list({ pageSize: 1 });
-        console.log("✅ Drive API เชื่อมต่อสำเร็จ:", res.data.files);
-    } catch (error) {
-        console.error("❌ Drive auth error:", error.message || error);
-    }
-}
