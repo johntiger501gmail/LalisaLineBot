@@ -3,174 +3,167 @@ import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import { google } from "googleapis";
+
 dotenv.config();
 
-// อ่านค่าโปรเจกต์จาก .env
-const projectId = process.env.GOOGLE_PROJECT_ID;
-
+// 🧩 ตั้งค่าข้อมูลจาก .env
 const privateKey = Buffer.from(
-  process.env.GOOGLE_PRIVATE_KEY_BASE64,
-  "base64"
+    process.env.GOOGLE_PRIVATE_KEY_BASE64,
+    "base64"
 ).toString("utf8");
 
-// สร้างออบเจ็กต์ auth โดยใช้ credentials จาก environment
 const auth = new google.auth.GoogleAuth({
-  credentials: {
-    client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    private_key: privateKey,
-  },
-  scopes: ["https://www.googleapis.com/auth/drive"],
+    credentials: {
+        client_email: process.env.GOOGLE_CLIENT_EMAIL,
+        private_key: privateKey,
+    },
+    scopes: ["https://www.googleapis.com/auth/drive"],
 });
 
-// แปลง URL ของโมดูลเป็น path
+// 🔹 path ของไฟล์ปัจจุบัน
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// * 🔹 ดาวน์โหลดไฟล์จาก log และอัปเดต log
+// --------------------------------------------------------------
+// * 🔹 ฟังก์ชันหลัก: ดาวน์โหลดไฟล์จาก log แล้วอัปโหลดขึ้น Google Drive
+// --------------------------------------------------------------
 export async function downloadAllExpiredFiles(client) {
     try {
-        // 1️⃣ เตรียมโฟลเดอร์ในเครื่อง
-        const { baseDir, logs: logDir } = ensureLocalFolders();
+        // 1️⃣ เชื่อมต่อ Google Drive API
+        const driveClient = await auth.getClient();
+        const drive = google.drive({ version: "v3", auth: driveClient });
 
-        // 2️⃣ เตรียมโฟลเดอร์บน Drive
-        const driveFolders = await ensureDriveFolders();
+        // 2️⃣ ตรวจสอบและสร้างโฟลเดอร์บน Drive (logs, images, videos, audio)
+        const folderIds = await ensureDriveFolders(drive);
 
-        // 3️⃣ โหลด log
-        const logFile = path.join(logDir, "messages.jsonl");
-        if (!fs.existsSync(logFile)) fs.writeFileSync(logFile, "", "utf-8");
-        const logData = fs.readFileSync(logFile, "utf-8")
-            .split("\n")
-            .filter(l => l.trim() !== "")
-            .map(l => JSON.parse(l));
+        // 3️⃣ โหลด log จากโฟลเดอร์ logs (messages.jsonl)
+        const { fileId: logFileId, logData } = await loadDriveLog(drive, folderIds.logs);
+        console.log(`📄 พบ log ${logData.length} รายการ`);
 
-        // 4️⃣ ประมวลผลแต่ละรายการ
+        // 4️⃣ ประมวลผลทีละรายการ
         for (const item of logData) {
-            if (!item.filePath && item.messageType && item.messageId) {
-                let folderType = "files";
-                if (item.messageType === "image") folderType = "images";
-                if (item.messageType === "video") folderType = "videos";
-                if (item.messageType === "audio") folderType = "audio";
+            if (item.filePath || !item.messageId || !item.messageType) continue;
 
-                const dateDir = new Date(item.timestamp).toISOString().split("T")[0];
-                const typeDir = path.join(baseDir, folderType, dateDir);
-                if (!fs.existsSync(typeDir)) fs.mkdirSync(typeDir, { recursive: true });
+            // จัดการประเภทไฟล์
+            let folderType = "files";
+            if (item.messageType === "image") folderType = "images";
+            if (item.messageType === "video") folderType = "videos";
+            if (item.messageType === "audio") folderType = "audio";
 
-                const fileName = `${Date.now()}_${item.messageId}.${getFileExtension(folderType)}`;
-                const filePath = path.join(typeDir, fileName);
+            console.log(`⬇️ ดาวน์โหลด ${item.messageType} (${item.messageId})...`);
 
-                if (fs.existsSync(filePath)) continue;
+            // ดาวน์โหลดไฟล์จาก client (เช่น LINE หรือ Chat API)
+            const stream = await client.getMessageContent(item.messageId);
 
-                console.log(`⬇️ ดาวน์โหลด ${item.messageType} (${item.messageId})...`);
-                const stream = await client.getMessageContent(item.messageId);
+            // บันทึกเป็น temp ไฟล์ในเครื่อง
+            const tmpPath = path.join(process.cwd(), `${Date.now()}_${item.messageId}.${getFileExtension(folderType)}`);
+            await new Promise((resolve, reject) => {
+                const writable = fs.createWriteStream(tmpPath);
+                stream.pipe(writable);
+                stream.on("end", resolve);
+                stream.on("error", reject);
+            });
 
-                await new Promise((resolve, reject) => {
-                    const writable = fs.createWriteStream(filePath);
-                    stream.pipe(writable);
-                    stream.on("end", resolve);
-                    stream.on("error", reject);
-                });
+            // 5️⃣ อัปโหลดไฟล์ขึ้น Google Drive
+            const fileMetadata = { name: path.basename(tmpPath), parents: [folderIds[folderType]] };
+            const media = { body: fs.createReadStream(tmpPath) };
+            const uploaded = await drive.files.create({ requestBody: fileMetadata, media, fields: "id, name" });
 
-                item.filePath = filePath;
-                console.log(`✅ บันทึกไฟล์สำเร็จ: ${filePath}`);
+            // 6️⃣ อัปเดต log ด้วย Drive File ID
+            item.filePath = `DriveFileID:${uploaded.data.id}`;
+            console.log(`✅ อัปโหลดเสร็จ: ${uploaded.data.name} (${uploaded.data.id})`);
 
-                // optional: upload ไป Google Drive
-                // await uploadFileToDrive(filePath, fileName, driveFolders[folderType]);
-            }
+            fs.unlinkSync(tmpPath); // ลบ temp
         }
 
-        // 5️⃣ เขียน log กลับไฟล์เดิม
-        fs.writeFileSync(logFile, logData.map(d => JSON.stringify(d)).join("\n"), "utf-8");
-        console.log("🎯 ดาวน์โหลดไฟล์ทั้งหมดเสร็จสิ้น!");
+        // 7️⃣ เขียน log กลับขึ้น Google Drive
+        await saveDriveLog(drive, logFileId, logData);
+        console.log("🎯 ดาวน์โหลดและอัปโหลดไฟล์ทั้งหมดเสร็จสิ้น!");
 
     } catch (error) {
         console.error("❌ downloadAllExpiredFiles.Error:", error);
     }
 }
 
-// 🔹 สร้างโฟลเดอร์โลคอลสี่อัน
-export function ensureLocalFolders() {
-  const baseDir = path.join(__dirname, "downloads");
-  const folderNames = ["logs", "images", "videos", "audio"];
+// --------------------------------------------------------------
+// 🔹 สร้างโฟลเดอร์บน Google Drive (logs, images, videos, audio)
+// --------------------------------------------------------------
+async function ensureDriveFolders(drive) {
+    const folderNames = ["logs", "images", "videos", "audio"];
+    const folderIds = {};
 
-  if (!fs.existsSync(baseDir)) fs.mkdirSync(baseDir, { recursive: true });
+    for (const name of folderNames) {
+        const q = `mimeType='application/vnd.google-apps.folder' and name='${name}' and trashed=false`;
+        const res = await drive.files.list({ q, fields: "files(id, name)" });
 
-  const folderPaths = {};
-
-  folderNames.forEach(name => {
-    const fullPath = path.join(baseDir, name);
-    if (!fs.existsSync(fullPath)) {
-      fs.mkdirSync(fullPath, { recursive: true });
-      console.log(`✅ สร้างโฟลเดอร์โลคอล: ${fullPath}`);
+        if (res.data.files.length > 0) {
+            folderIds[name] = res.data.files[0].id;
+            console.log(`ℹ️ พบโฟลเดอร์บน Drive แล้ว: ${name}`);
+        } else {
+            const fileMetadata = { name, mimeType: "application/vnd.google-apps.folder" };
+            const folder = await drive.files.create({ requestBody: fileMetadata, fields: "id, name" });
+            folderIds[name] = folder.data.id;
+            console.log(`✅ สร้างโฟลเดอร์บน Drive: ${name}`);
+        }
     }
-    folderPaths[name] = fullPath;
-  });
-
-  return { baseDir, ...folderPaths };
+    return folderIds;
 }
 
-// 🔹 สร้าง folder บน Google Drive
-export async function ensureDriveFolders() {
-  const folderNames = ["logs", "images", "videos", "audio"];
-  const folderIds = {};
+// --------------------------------------------------------------
+// 🔹 โหลด log (messages.jsonl) จากโฟลเดอร์ logs
+// --------------------------------------------------------------
+async function loadDriveLog(drive, logsFolderId) {
+    const q = `'${logsFolderId}' in parents and name='messages.jsonl' and trashed=false`;
+    const res = await drive.files.list({ q, fields: "files(id, name)" });
 
-  for (const name of folderNames) {
-    folderIds[name] = await createDriveFolderIfNotExists(name);
-  }
+    let fileId;
+    if (res.data.files.length > 0) {
+        fileId = res.data.files[0].id;
+        console.log("ℹ️ พบไฟล์ log บน Drive");
+    } else {
+        const fileMetadata = { name: "messages.jsonl", parents: [logsFolderId] };
+        const media = { mimeType: "application/json", body: "" };
+        const file = await drive.files.create({ requestBody: fileMetadata, media, fields: "id, name" });
+        fileId = file.data.id;
+        console.log("✅ สร้างไฟล์ log ใหม่บน Drive");
+    }
 
-  return folderIds;
+    // ดาวน์โหลดเนื้อหา log
+    let data = "";
+    const resStream = await drive.files.get({ fileId, alt: "media" }, { responseType: "stream" });
+    await new Promise((resolve, reject) => {
+        resStream.data.on("data", chunk => (data += chunk));
+        resStream.data.on("end", resolve);
+        resStream.data.on("error", reject);
+    });
+
+    const lines = data.split("\n").filter(l => l.trim() !== "");
+    const logData = lines.map(l => JSON.parse(l));
+
+    return { fileId, logData };
 }
 
-// 🔹 ฟังก์ชันช่วยสร้าง folder บน Drive ถ้ายังไม่มี
-async function createDriveFolderIfNotExists(name, parentId = null) {
-  const client = await auth.getClient();
-  const drive = google.drive({ version: "v3", auth: client });
+// --------------------------------------------------------------
+// 🔹 เขียน log กลับไปยัง Google Drive
+// --------------------------------------------------------------
+async function saveDriveLog(drive, fileId, logData) {
+    const tempPath = path.join(process.cwd(), `messages_temp.jsonl`);
+    fs.writeFileSync(tempPath, logData.map(d => JSON.stringify(d)).join("\n"), "utf8");
 
-  // ตรวจสอบว่ามี folder อยู่แล้วหรือไม่
-  const qParts = [`mimeType='application/vnd.google-apps.folder'`, `name='${name}'`];
-  if (parentId) qParts.push(`'${parentId}' in parents`);
-  const resList = await drive.files.list({ q: qParts.join(" and "), fields: "files(id, name)" });
-
-  if (resList.data.files && resList.data.files.length > 0) {
-    console.log(`ℹ️ โฟลเดอร์ Drive มีอยู่แล้ว: ${resList.data.files[0].name}`);
-    return resList.data.files[0].id;
-  }
-
-  // ถ้ายังไม่มี สร้าง folder
-  const fileMetadata = {
-    name,
-    mimeType: "application/vnd.google-apps.folder",
-    parents: parentId ? [parentId] : [],
-  };
-
-  const res = await drive.files.create({ requestBody: fileMetadata, fields: "id, name" });
-  console.log(`✅ สร้างโฟลเดอร์บน Drive: ${res.data.name} (${res.data.id})`);
-  return res.data.id;
-}
-// 🔹 saveChatLog เก็บข้อมูลสำคัญ
-function saveChatLog(message) {
-  const { logDir } = ensureLocalLogSetup(); // แก้ตรงนี้
-  const logFile = path.join(logDir, "messages.jsonl");
-
-  const logEntry = {
-    timestamp: message.timestamp || new Date().toISOString(),
-    senderName: message.senderName || null,
-    text: message.text || null,
-    filePath: message.filePath || null,
-    messageType: message.messageType || null,
-    messageId: message.messageId || null
-  };
-
-  fs.appendFileSync(logFile, JSON.stringify(logEntry) + "\n");
+    const media = { body: fs.createReadStream(tempPath) };
+    await drive.files.update({ fileId, media });
+    fs.unlinkSync(tempPath);
+    console.log("📝 อัปเดต log กลับไปที่ Drive แล้ว");
 }
 
-/**
- * 🔹 คืนค่านามสกุลไฟล์ตามประเภท
- */
+// --------------------------------------------------------------
+// 🔹 คืนค่านามสกุลไฟล์ตามประเภท
+// --------------------------------------------------------------
 function getFileExtension(type) {
-  switch (type) {
-    case "images": return "jpg";
-    case "videos": return "mp4";
-    case "audio": return "m4a";
-    default: return "bin";
-  }
+    switch (type) {
+        case "images": return "jpg";
+        case "videos": return "mp4";
+        case "audio": return "m4a";
+        default: return "bin";
+    }
 }
